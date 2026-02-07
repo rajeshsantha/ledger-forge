@@ -7,8 +7,8 @@ object ArgParser {
   private val parser = {
     import builder._
     OParser.sequence(
-      programName("MyBankETL"),
-      note("MyBankETL version 1.0"),
+      programName(BuildInfo.name),
+      note(BuildInfo.fullVersion),
       opt[String]('e', "env").action((x, c) => c.copy(env = x)).text("Environment to run in (dev, test, prod)"),
       opt[String]('i', "inputOverride").action((x, c) => c.copy(inputOverride = Some(x))).text("Override input base path (optional)")
     )

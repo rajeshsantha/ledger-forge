@@ -7,11 +7,26 @@
 <groupId>com.ledgerforge</groupId>
 <artifactId>ledger-forge</artifactId>
 <version>1.0-SNAPSHOT</version>
+<name>LedgerForge</name>
 
 <properties>
     <scala.version>2.12.15</scala.version>
     <spark.version>3.5.1</spark.version>
     <encoding>UTF-8</encoding>
+
+    <!-- Default/placeholder properties to satisfy Maven validation and to be
+         potentially overridden at build-time by the Antrun tasks. These keep
+         the symbols resolvable in IDEs and during the lifecycle. -->
+    <!-- git.* defaults: use 'unknown' for text values and non-zero for result codes
+         so the Ant conditions will set the final values to 'unknown' unless git
+         executes successfully during the generate-resources phase. -->
+    <git.commit>unknown</git.commit>
+    <git.branch>unknown</git.branch>
+    <git.commit.result>1</git.commit.result>
+    <git.branch.result>1</git.branch.result>
+    <git.commit.final>unknown</git.commit.final>
+    <git.branch.final>unknown</git.branch.final>
+    <build.time>unknown</build.time>
 </properties>
 
 <dependencies>
@@ -69,7 +84,58 @@
 </dependencies>
 
 <build>
+    <resources>
+        <resource>
+            <directory>src/main/resources</directory>
+            <filtering>true</filtering>
+        </resource>
+    </resources>
     <plugins>
+        <!-- Antrun plugin to create build-info.properties -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>3.1.0</version>
+            <executions>
+                <execution>
+                    <phase>generate-resources</phase>
+                    <goals>
+                        <goal>run</goal>
+                    </goals>
+                    <configuration>
+                        <target>
+                            <mkdir dir="${project.build.outputDirectory}/META-INF"/>
+                            <tstamp>
+                                <format property="build.time" pattern="yyyy-MM-dd HH:mm:ss z"/>
+                            </tstamp>
+                            <exec executable="git" outputproperty="git.commit" failifexecutionfails="false" resultproperty="git.commit.result">
+                                <arg value="rev-parse"/>
+                                <arg value="HEAD"/>
+                            </exec>
+                            <exec executable="git" outputproperty="git.branch" failifexecutionfails="false" resultproperty="git.branch.result">
+                                <arg value="rev-parse"/>
+                                <arg value="--abbrev-ref"/>
+                                <arg value="HEAD"/>
+                            </exec>
+                            <condition property="git.commit.final" value="${git.commit}" else="unknown">
+                                <equals arg1="${git.commit.result}" arg2="0"/>
+                            </condition>
+                            <condition property="git.branch.final" value="${git.branch}" else="unknown">
+                                <equals arg1="${git.branch.result}" arg2="0"/>
+                            </condition>
+                            <propertyfile file="${project.build.outputDirectory}/META-INF/build-info.properties">
+                                <entry key="build.name" value="${project.name}"/>
+                                <entry key="build.version" value="${project.version}"/>
+                                <entry key="build.time" value="${build.time}"/>
+                                <entry key="build.git.commit" value="${git.commit.final}"/>
+                                <entry key="build.git.branch" value="${git.branch.final}"/>
+                            </propertyfile>
+                        </target>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+
         <!-- Scala Maven Plugin -->
         <plugin>
             <groupId>net.alchim31.maven</groupId>

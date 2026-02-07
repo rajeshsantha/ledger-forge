@@ -27,11 +27,14 @@ class JobRunner(cmdArgs: CommandLineArgs) {
     )
 
     jobs.foreach { case (configKey, transformer, table) =>
-val rawPath = cmdArgs.inputOverride.getOrElse(config.getString(configKey))
+      val rawPath = cmdArgs.inputOverride.getOrElse(config.getString(configKey))
       val inputPath = if (rawPath.startsWith("src/main/resources")) rawPath else s"src/main/resources/${rawPath.stripPrefix("/")}"
       val df = reader.read(inputPath)
-      println("inputPath: " + inputPath+"\ntable"+ table+"\n configKey" + configKey)
-      df.show()
+      println(
+        s"inputPath : $inputPath\n" +
+          s"table     : $table\n"
+      )
+      df.show(5)
       val transformed = transformer.transform(df)
       writer.write(transformed, table)
     }
