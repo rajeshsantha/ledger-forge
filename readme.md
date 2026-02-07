@@ -1,15 +1,13 @@
 # LedgerForge
 
-LedgerForge is a **production-grade Spark Scala learning project** focused on solving real-world data engineering problems such as **data skew, deduplication, late-arriving data, SCD Type 2 dimensions, and performance trade-offs at scale**.
+LedgerForge is a **production-grade Data project** focused on solving real-world data engineering problems such as **data skew, deduplication, late-arriving data, SCD Type 2 dimensions, and performance trade-offs at scale**.
 
-This project intentionally avoids toy ETLs.  
-Instead, it simulates realistic banking datasets with millions of records and embedded data quality issues to force correct and scalable Spark design.
+It simulates realistic banking datasets with millions of records and embedded data quality issues to force correct and scalable Spark design.
 
 ---
 
 ## 🎯 Project Goals
 
-- Learn Spark Scala by **doing**, not by reading APIs
 - Work with **large datasets (10M–50M+ rows)**
 - Practice correctness-first data engineering
 - Understand Spark execution plans, shuffles, and skew
@@ -69,8 +67,6 @@ LedgerForge embeds **real production failure modes**, including:
 - Memory-heavy aggregations (`countDistinct`)
 - Malformed input records
 - Ambiguous business logic
-
-If Spark feels “easy” here, something is wrong.
 
 ---
 

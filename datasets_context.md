@@ -1,7 +1,4 @@
-Production-grade Spark requirements (YOU solve these)
-
-Now the fun part.
-These are concrete, solvable Spark Scala tasks using your datasets.
+Production-grade Spark requirements
 
 ⸻
 
