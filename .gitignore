@@ -1,0 +1,50 @@
+# =========================
+# IntelliJ IDEA
+# =========================
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# =========================
+# Build outputs
+# =========================
+target/
+build/
+dist/
+
+# =========================
+# Spark / Hadoop
+# =========================
+spark-warehouse/
+derby.log
+metastore_db/
+checkpoint/
+tmp/
+
+# =========================
+# Generated data (IMPORTANT)
+# =========================
+data/synthetic/
+data/output/
+data/tmp/
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Secrets / local configs
+# =========================
+.env
+.env.*
+application-local.conf

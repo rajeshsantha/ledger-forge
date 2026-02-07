@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<modelVersion>4.0.0</modelVersion>
+
+<groupId>com.ledgerforge</groupId>
+<artifactId>ledger-forge</artifactId>
+<version>1.0-SNAPSHOT</version>
+
+<properties>
+    <scala.version>2.12.15</scala.version>
+    <spark.version>3.5.1</spark.version>
+    <encoding>UTF-8</encoding>
+</properties>
+
+<dependencies>
+    <!-- Spark Core -->
+    <dependency>
+        <groupId>org.apache.spark</groupId>
+        <artifactId>spark-core_2.12</artifactId>
+        <version>3.5.1</version>
+    </dependency>
+    <!-- Spark SQL -->
+    <dependency>
+        <groupId>org.apache.spark</groupId>
+        <artifactId>spark-sql_2.12</artifactId>
+        <version>${spark.version}</version>
+        <scope>provided</scope>
+    </dependency>
+
+    <!-- Typesafe Config (for application.conf) -->
+    <dependency>
+        <groupId>com.typesafe</groupId>
+        <artifactId>config</artifactId>
+        <version>1.4.2</version>
+    </dependency>
+
+    <!-- Azure Key Vault SDK (optional if using dbutils.secrets only) -->
+    <dependency>
+        <groupId>com.azure</groupId>
+        <artifactId>azure-security-keyvault-secrets</artifactId>
+        <version>4.7.1</version>
+    </dependency>
+
+    <!-- PostgreSQL JDBC driver -->
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>42.6.0</version>
+    </dependency>
+
+    <!-- ScalaTest for unit testing -->
+    <dependency>
+        <groupId>org.scalatest</groupId>
+        <artifactId>scalatest_2.12</artifactId>
+        <version>3.2.17</version>
+        <scope>test</scope>
+    </dependency>
+
+    <!-- Databricks DBUtils (only available inside Databricks runtime) -->
+    <!-- No separate Maven dependency required. Use dbutils directly in Databricks notebooks or when deployed there. -->
+    <!-- scopt for command-line argument parsing -->
+    <dependency>
+        <groupId>com.github.scopt</groupId>
+        <artifactId>scopt_2.12</artifactId>
+        <version>4.1.0</version>
+    </dependency>
+</dependencies>
+
+<build>
+    <plugins>
+        <!-- Scala Maven Plugin -->
+        <plugin>
+            <groupId>net.alchim31.maven</groupId>
+            <artifactId>scala-maven-plugin</artifactId>
+            <version>4.5.6</version>
+            <executions>
+                <execution>
+                    <id>compile-scala</id>
+                    <phase>compile</phase>
+                    <goals>
+                        <goal>compile</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>test-compile-scala</id>
+                    <phase>test-compile</phase>
+                    <goals>
+                        <goal>testCompile</goal>
+                    </goals>
+                </execution>
+            </executions>
+            <configuration>
+                <scalaVersion>${scala.version}</scalaVersion>
+            </configuration>
+        </plugin>
+
+        <!-- Compiler plugin -->
+        <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.11.0</version>
+            <configuration>
+                <source>1.8</source>
+                <target>1.8</target>
+            </configuration>
+        </plugin>
+
+        <!-- Shade plugin to create an executable fat JAR including the PostgreSQL driver -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.5.0</version>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                        <createDependencyReducedPom>false</createDependencyReducedPom>
+                        <transformers>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <mainClass>com.ledgerforge.pipeline.Main</mainClass>
+                            </transformer>
+                        </transformers>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+</project>
+
