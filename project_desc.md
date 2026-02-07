@@ -1,7 +1,7 @@
 # Project: LedgerForge 
 
 ## Goal
-Deeply learn Spark Scala by solving production-grade data engineering problems:
+Solving production-grade data engineering problems:
 - skew
 - deduplication
 - late data
