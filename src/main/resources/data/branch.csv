@@ -1,4 +1,4 @@
-branch_id,branch_name,location
+branch_id,branch_name,city,state
 1,Main Branch 1,City 70, State 2
 2,Downtown Branch 2,City 29, State 18
 3,Suburban Branch 3,City 97, State 23
