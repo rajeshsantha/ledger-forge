@@ -1,6 +1,6 @@
 package com.ledgerforge.pipeline.schema
 
-import org.apache.spark.sql.types._
+import org.apache.spark.sql.types.{StructField, _}
 
 object SchemaProvider {
   val customerSchema: StructType = StructType(Seq(
@@ -37,7 +37,8 @@ object SchemaProvider {
   val branchSchema: StructType = StructType(Seq(
     StructField("branch_id", IntegerType, nullable = false),
     StructField("branch_name", StringType, nullable = true),
-    StructField("location", StringType, nullable = true)
+    StructField("city", StringType, nullable = true),
+      StructField("state", StringType, nullable = true)
   ))
 
   def schemaForPath(path: String): StructType = {
