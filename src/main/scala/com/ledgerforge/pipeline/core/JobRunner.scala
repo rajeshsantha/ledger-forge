@@ -1,11 +1,15 @@
 package com.ledgerforge.pipeline.core
 
+import com.ledgerforge.pipeline.utils.RuntimeCalculator
 import com.ledgerforge.pipeline.config.CommandLineArgs
-import com.ledgerforge.pipeline.reader.CSVReader
+import com.ledgerforge.pipeline.reader.{CSVReader, ParquetReader}
 import com.ledgerforge.pipeline.transformer.{AccountTransformer, BranchTransformer, CustomerTransformer, ProductTransformer, TransactionTransformer}
 import com.ledgerforge.pipeline.writer.PostgresWriter
-import com.ledgerforge.pipeline.transformer._
 import com.typesafe.config.ConfigFactory
+import org.apache.spark.sql.DataFrame
+
+import java.nio.file.{Files, Paths}
+import org.apache.spark.storage.StorageLevel
 
 class JobRunner(cmdArgs: CommandLineArgs) {
   def run(): Unit = {
@@ -16,6 +20,7 @@ class JobRunner(cmdArgs: CommandLineArgs) {
     // overrides managed by Typesafe Config.
     val config = ConfigFactory.load()
     val reader = new CSVReader(spark)
+    val parquetReader = new ParquetReader(spark)
     val writer = new PostgresWriter(config)
 
     val jobs = Seq(
@@ -28,15 +33,99 @@ class JobRunner(cmdArgs: CommandLineArgs) {
 
     jobs.foreach { case (configKey, transformer, table) =>
       val rawPath = cmdArgs.inputOverride.getOrElse(config.getString(configKey))
-      val inputPath = if (rawPath.startsWith("src/main/resources")) rawPath else s"src/main/resources/${rawPath.stripPrefix("/")}"
-      val df = reader.read(inputPath)
+      val inputPath = resolveInputPath(rawPath)
+      val df =
+        if (inputPath.toLowerCase.endsWith(".csv")) reader.read(inputPath)
+        else RuntimeCalculator.calcRuntime(s"Reading Parquet from $inputPath") {
+          parquetReader.read(inputPath)
+        }
+      // Persist the DataFrame before doing multiple actions so we avoid recomputation.
+      // Use MEMORY_AND_DISK to be safer for larger datasets.
+      val cached =  RuntimeCalculator.calcRuntime(s"persisting $inputPath") {
+        df.persist(StorageLevel.MEMORY_AND_DISK)
+      }
+
+      // Materialize cache and get a count for logging
+      val cnt = RuntimeCalculator.calcRuntime(s"counting $inputPath") {
+        cached.count()
+      }
       println(
         s"inputPath : $inputPath\n" +
-          s"table     : $table\n"
+          s"table     : $table\n" +
+          s"count     : $cnt\n"
       )
-      df.show(5)
-      val transformed = transformer.transform(df)
-      writer.write(transformed, table)
+
+      // Small data preview using the cached DataFrame
+      RuntimeCalculator.calcRuntime(s"previewing $table") {
+        cached.show(5)
+      }
+
+      // Use the cached DataFrame for transformations and writing
+      val transformed = RuntimeCalculator.calcRuntime(s"Transforming $table") {
+        transformer.transform(cached)
+      }
+      RuntimeCalculator.calcRuntime(s"writing $table")  {
+        writer.write(transformed, table)
+      }
+
+      // Unpersist the cached input after downstream writes complete
+      cached.unpersist(blocking = true)
+
     }
+  }
+
+  private def resolveInputPath(rawPath: String): String = {
+    val asGiven = Paths.get(rawPath)
+    // If the path is absolute and exists, use it as-is
+    if (asGiven.isAbsolute && Files.exists(asGiven)) {
+      return rawPath
+    }
+    // If a relative path exists in the current working directory, use it
+    if (Files.exists(asGiven)) {
+      return asGiven.toString
+    }
+
+    // Normalize the incoming path (strip leading /)
+    val stripped = rawPath.stripPrefix("/")
+
+    // Extract filename without directory or extension: 'data/customer.csv' -> 'customer'
+    val fileName = Paths.get(stripped).getFileName.toString
+    val baseName = {
+      val idx = fileName.lastIndexOf('.')
+      if (idx > 0) fileName.substring(0, idx) else fileName
+    }
+
+    // Prefer parquet directory under top-level data/synthetic/<baseName> if it exists
+    val syntheticParquet = Paths.get("data", "synthetic", baseName)
+    if (Files.exists(syntheticParquet)) {
+      return syntheticParquet.toString
+    }
+    // If no exact match, try to find a directory that starts with the baseName (e.g., customer_scd2)
+    val syntheticDir = Paths.get("data", "synthetic")
+    if (Files.exists(syntheticDir) && Files.isDirectory(syntheticDir)) {
+      val alt = java.nio.file.Files.newDirectoryStream(syntheticDir).iterator()
+      while (alt.hasNext) {
+        val candidate = alt.next().getFileName.toString
+        if (candidate.startsWith(baseName)) return Paths.get("data", "synthetic", candidate).toString
+      }
+    }
+
+    // Also check under resources (src/main/resources/data/<baseName>) which may contain parquet or directories
+    val resourceCandidate = Paths.get("src/main/resources", "data", baseName)
+    if (Files.exists(resourceCandidate)) {
+      return resourceCandidate.toString
+    }
+    // Check for prefix matches in resources/data (e.g., customer_scd2)
+    val resourcesDir = Paths.get("src/main/resources", "data")
+    if (Files.exists(resourcesDir) && Files.isDirectory(resourcesDir)) {
+      val iter = java.nio.file.Files.newDirectoryStream(resourcesDir).iterator()
+      while (iter.hasNext) {
+        val candidate = iter.next().getFileName.toString
+        if (candidate.startsWith(baseName)) return resourcesDir.resolve(candidate).toString
+      }
+    }
+
+    // Fallback: treat the original path as relative to src/main/resources (this matches previous behavior)
+    Paths.get("src/main/resources").resolve(stripped).toString
   }
 }
