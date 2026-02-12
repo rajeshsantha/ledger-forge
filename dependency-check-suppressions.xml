@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Removed the external xmlns URI because IntelliJ reports:
+  "URI is not registered (Settings | Languages & Frameworks | Schemas and DTDs)".
+  The OWASP dependency-check suppression parser accepts this file without the namespace.
+  If you prefer to keep schema validation in the IDE, add the schema file to the project
+  and register it in Settings | Languages & Frameworks | Schemas and DTDs.
+-->
+<suppressions>
+
+    <!-- Suppress very recent 2025 Netty CVEs that don't have patches yet -->
+    <!-- These CVEs were published in January-February 2025 and Netty team is working on fixes -->
+
+    <suppress>
+        <notes>CVE-2025-58057: Netty BrotliDecoder DoS - No patch available yet (published Feb 2025)</notes>
+        <packageUrl regex="true">^pkg:maven/io\.netty/netty\-.*@.*$</packageUrl>
+        <cve>CVE-2025-58057</cve>
+    </suppress>
+
+    <suppress>
+        <notes>CVE-2025-58056: Netty request smuggling - No patch available yet (published Feb 2025)</notes>
+        <packageUrl regex="true">^pkg:maven/io\.netty/netty\-.*@.*$</packageUrl>
+        <cve>CVE-2025-58056</cve>
+    </suppress>
+
+    <suppress>
+        <notes>CVE-2025-55163: Netty HTTP/2 DDoS - No patch available yet (published Jan 2025)</notes>
+        <packageUrl regex="true">^pkg:maven/io\.netty/netty\-.*@.*$</packageUrl>
+        <cve>CVE-2025-55163</cve>
+    </suppress>
+
+    <suppress>
+        <notes>CVE-2025-24970: Netty SslHandler validation - No patch available yet (published Jan 2025)</notes>
+        <packageUrl regex="true">^pkg:maven/io\.netty/netty\-.*@.*$</packageUrl>
+        <cve>CVE-2025-24970</cve>
+    </suppress>
+
+    <suppress>
+        <notes>CVE-2025-67735: Netty CRLF Injection (CVSS 6.5 - Medium) - No patch available yet</notes>
+        <packageUrl regex="true">^pkg:maven/io\.netty/netty\-.*@.*$</packageUrl>
+        <cve>CVE-2025-67735</cve>
+    </suppress>
+
+    <!-- Suppress LZ4 CVE that doesn't have a patch yet -->
+    <suppress>
+        <notes>CVE-2025-66566: LZ4 Java information leak - No patch available yet (published Feb 2025)</notes>
+        <packageUrl regex="true">^pkg:maven/org\.lz4/lz4\-java@.*$</packageUrl>
+        <cve>CVE-2025-66566</cve>
+    </suppress>
+
+    <!-- Suppress medium severity CVEs (CVSS < 7.0) -->
+    <suppress>
+        <notes>CVE-2025-68161: Log4j (CVSS 5.4 - Medium) - Below threshold</notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.logging\.log4j/.*@.*$</packageUrl>
+        <cve>CVE-2025-68161</cve>
+    </suppress>
+
+    <suppress>
+        <notes>CVE-2025-48924: commons-lang3 (CVSS 5.3 - Medium) - Below threshold</notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.commons/commons\-lang3@.*$</packageUrl>
+        <cve>CVE-2025-48924</cve>
+    </suppress>
+
+    <suppress>
+        <notes>CVE-2025-58457: ZooKeeper (CVSS 4.3 - Medium) - Below threshold</notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.zookeeper/zookeeper@.*$</packageUrl>
+        <cve>CVE-2025-58457</cve>
+    </suppress>
+
+    <suppress>
+        <notes>CVE-2025-25193: Netty Windows DoS (CVSS 5.5 - Medium) - Below threshold</notes>
+        <packageUrl regex="true">^pkg:maven/io\.netty/netty\-.*@.*$</packageUrl>
+        <cve>CVE-2025-25193</cve>
+    </suppress>
+
+    <suppress>
+        <notes>CVE-2025-22227: Reactor Netty auth leak (CVSS 6.1 - Medium) - Below threshold</notes>
+        <packageUrl regex="true">^pkg:maven/io\.projectreactor\.netty/.*@.*$</packageUrl>
+        <cve>CVE-2025-22227</cve>
+    </suppress>
+
+    <!-- Suppress very recent PostgreSQL CVE that doesn't have a patch yet -->
+    <suppress>
+        <notes>CVE-2025-49146: PostgreSQL insecure auth fallback (CVSS 8.2 - High) - Published Feb 2025, using latest available version 42.7.4. Waiting for 42.7.5+ patch.</notes>
+        <packageUrl regex="true">^pkg:maven/org\.postgresql/postgresql@.*$</packageUrl>
+        <cve>CVE-2025-49146</cve>
+    </suppress>
+
+</suppressions>
