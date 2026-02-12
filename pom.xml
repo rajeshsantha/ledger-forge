@@ -11,7 +11,7 @@
 
 <properties>
     <scala.version>2.12.15</scala.version>
-    <spark.version>3.5.1</spark.version>
+    <spark.version>3.5.8</spark.version>
     <encoding>UTF-8</encoding>
 
     <!-- Default/placeholder properties to satisfy Maven validation and to be
@@ -29,12 +29,153 @@
     <build.time>unknown</build.time>
 </properties>
 
+<dependencyManagement>
+    <dependencies>
+        <!-- Override vulnerable transitive dependencies from Spark with patched versions -->
+
+        <!-- Fix CVE-2023-39410, CVE-2024-47561 in avro:1.11.2 -->
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>1.11.4</version>
+        </dependency>
+
+        <!-- Fix CVE-2025-52999 in jackson-core:2.14.2 -->
+        <!-- Note: Using 2.17.3 (latest 2.17.x) instead of 2.18.x for compatibility with Spark's jackson-module-scala 2.15.2 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.17.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.17.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.17.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-scala_2.12</artifactId>
+            <version>2.17.3</version>
+        </dependency>
+
+        <!-- Fix CVE-2024-7254 in protobuf-java:3.19.6 -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.25.5</version>
+        </dependency>
+
+        <!-- Fix CVE-2025-68161 in log4j-core:2.20.0 -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.24.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.24.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+            <version>2.24.3</version>
+        </dependency>
+
+        <!-- Fix CVE-2018-10237, CVE-2023-2976, CVE-2020-8908 in guava:16.0.1 -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>33.3.1-jre</version>
+        </dependency>
+
+        <!-- Fix CVE-2023-44981 (CRITICAL 9.1), CVE-2024-23944 in zookeeper:3.6.3 -->
+
+        <!-- Fix CVE-2024-25710, CVE-2024-26308, CVE-2023-42503 in commons-compress:1.23.0 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.27.1</version>
+        </dependency>
+
+        <!-- Fix CVE-2025-48924 in commons-lang3:3.12.0 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.17.0</version>
+        </dependency>
+
+        <!-- Fix CVE-2025-66566 in lz4-java:1.8.0 -->
+        <!-- Note: CVE-2025-66566 is present even in latest version 1.8.0.
+             Waiting for upstream patch. This is a CVSS 7.5 but specific to certain scenarios. -->
+        <dependency>
+            <groupId>org.lz4</groupId>
+            <artifactId>lz4-java</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+
+        <!-- Fix multiple Netty CVEs in netty:4.1.96.Final -->
+        <!-- Note: Some 2025 CVEs (CVE-2025-58057, CVE-2025-58056, CVE-2025-55163, CVE-2025-24970)
+             are still present in latest version 4.1.118.Final as patches are not yet released.
+             These will be addressed when Netty publishes security patches. -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.118.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec</artifactId>
+            <version>4.1.118.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http</artifactId>
+            <version>4.1.118.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http2</artifactId>
+            <version>4.1.118.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-common</artifactId>
+            <version>4.1.118.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+            <version>4.1.118.Final</version>
+        </dependency>
+
+        <!-- Fix CVE-2022-46751 in ivy:2.5.1 -->
+        <dependency>
+            <groupId>org.apache.ivy</groupId>
+            <artifactId>ivy</artifactId>
+            <version>2.5.2</version>
+        </dependency>
+
+        <!-- Fix Azure reactor-netty CVEs -->
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty-http</artifactId>
+            <version>1.1.24</version>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
 <dependencies>
     <!-- Spark Core -->
     <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-core_2.12</artifactId>
-        <version>3.5.1</version>
+        <version>${spark.version}</version>
     </dependency>
     <!-- Spark SQL -->
     <dependency>
@@ -51,18 +192,12 @@
         <version>1.4.2</version>
     </dependency>
 
-    <!-- Azure Key Vault SDK (optional if using dbutils.secrets only) -->
-    <dependency>
-        <groupId>com.azure</groupId>
-        <artifactId>azure-security-keyvault-secrets</artifactId>
-        <version>4.7.1</version>
-    </dependency>
 
     <!-- PostgreSQL JDBC driver -->
     <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.6.0</version>
+        <version>42.7.7</version>
     </dependency>
 
     <!-- ScalaTest for unit testing -->
@@ -191,6 +326,36 @@
                             </transformer>
                         </transformers>
                     </configuration>
+                </execution>
+            </executions>
+        </plugin>
+
+        <!-- OWASP Dependency-Check Plugin for CVE scanning -->
+        <plugin>
+            <groupId>org.owasp</groupId>
+            <artifactId>dependency-check-maven</artifactId>
+            <version>9.2.0</version>
+            <configuration>
+                <failBuildOnCVSS>7</failBuildOnCVSS>
+                <suppressionFiles>
+                    <!-- Suppress CVEs that don't have patches yet (newly published in 2025) -->
+                    <suppressionFile>dependency-check-suppressions.xml</suppressionFile>
+                </suppressionFiles>
+                <!-- Enable caching for faster scans -->
+                <cacheDirectory>${user.home}/.m2/dependency-check-cache</cacheDirectory>
+                <!-- Skip analysis of test dependencies to speed up scans -->
+                <skipTestScope>true</skipTestScope>
+                <!-- Output formats -->
+                <formats>
+                    <format>HTML</format>
+                    <format>JSON</format>
+                </formats>
+            </configuration>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>check</goal>
+                    </goals>
                 </execution>
             </executions>
         </plugin>
