@@ -95,6 +95,21 @@
         </dependency>
 
         <!-- Fix CVE-2023-44981 (CRITICAL 9.1), CVE-2024-23944 in zookeeper:3.6.3 -->
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>3.9.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- Fix CVE-2024-25710, CVE-2024-26308, CVE-2023-42503 in commons-compress:1.23.0 -->
         <dependency>
@@ -338,11 +353,8 @@
             <configuration>
                 <failBuildOnCVSS>7</failBuildOnCVSS>
                 <suppressionFiles>
-                    <!-- Suppress CVEs that don't have patches yet (newly published in 2025) -->
                     <suppressionFile>dependency-check-suppressions.xml</suppressionFile>
                 </suppressionFiles>
-                <!-- Enable caching for faster scans -->
-                <cacheDirectory>${user.home}/.m2/dependency-check-cache</cacheDirectory>
                 <!-- Skip analysis of test dependencies to speed up scans -->
                 <skipTestScope>true</skipTestScope>
                 <!-- Output formats -->
@@ -350,6 +362,10 @@
                     <format>HTML</format>
                     <format>JSON</format>
                 </formats>
+                <!-- OSS Index (Sonatype) is enabled by default - no API key needed, fast ~30-60s scan -->
+                <!-- NVD is optional: pass -Dnvd.apiKey=YOUR_KEY to enable it -->
+                <nvdApiKey>${nvd.apiKey}</nvdApiKey>
+                <nvdValidForHours>24</nvdValidForHours>
             </configuration>
             <executions>
                 <execution>
