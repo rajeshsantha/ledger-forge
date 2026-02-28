@@ -27,7 +27,6 @@
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-sql_2.12</artifactId>
         <version>${spark.version}</version>
-        <scope>provided</scope>
     </dependency>
 
     <!-- Typesafe Config (for application.conf) -->
@@ -37,8 +36,7 @@
         <version>1.4.2</version>
     </dependency>
 
-
-    <!-- PostgreSQL JDBC driver -->
+    <!-- PostgreSQL JDBC driver (optional — needed only when using PostgresWriter) -->
     <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>

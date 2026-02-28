@@ -4,7 +4,7 @@ import com.ledgerforge.pipeline.utils.RuntimeCalculator
 import com.ledgerforge.pipeline.config.CommandLineArgs
 import com.ledgerforge.pipeline.reader.{CSVReader, ParquetReader}
 import com.ledgerforge.pipeline.transformer.{AccountTransformer, BranchTransformer, CustomerTransformer, ProductTransformer, TransactionTransformer}
-import com.ledgerforge.pipeline.writer.PostgresWriter
+import com.ledgerforge.pipeline.writer.{ParquetWriter, PostgresWriter}
 import com.typesafe.config.ConfigFactory
 import org.apache.spark.sql.DataFrame
 
@@ -14,14 +14,11 @@ import org.apache.spark.storage.StorageLevel
 class JobRunner(cmdArgs: CommandLineArgs) {
   def run(): Unit = {
     val spark = SparkSessionProvider.getSparkSession("ETLJob")
-    // Load the application configuration (application.conf). Previously this used
-    // ConfigFactory.load(cmdArgs.env) which does not load the top-level `db` block
-    // as expected; use load() to pick up application.conf and any environment-specific
-    // overrides managed by Typesafe Config.
     val config = ConfigFactory.load()
     val reader = new CSVReader(spark)
     val parquetReader = new ParquetReader(spark)
-    val writer = new PostgresWriter(config)
+    //val writer = new PostgresWriter(config)
+    val writer = new ParquetWriter("output/tables")
 
     val jobs = Seq(
       ("input.customer", new CustomerTransformer(), "customer_table"),
