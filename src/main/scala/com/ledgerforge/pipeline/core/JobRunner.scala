@@ -36,14 +36,14 @@ class JobRunner(cmdArgs: CommandLineArgs) {
       val inputPath = resolveInputPath(rawPath)
       val df =
         if (inputPath.toLowerCase.endsWith(".csv")) reader.read(inputPath)
-        else RuntimeCalculator.calcRuntime(s"Reading Parquet from $inputPath") {
+        else
           parquetReader.read(inputPath)
-        }
+
       // Persist the DataFrame before doing multiple actions so we avoid recomputation.
       // Use MEMORY_AND_DISK to be safer for larger datasets.
-      val cached =  RuntimeCalculator.calcRuntime(s"persisting $inputPath") {
+      val cached =
         df.persist(StorageLevel.MEMORY_AND_DISK)
-      }
+
 
       // Materialize cache and get a count for logging
       val cnt = RuntimeCalculator.calcRuntime(s"counting $inputPath") {
