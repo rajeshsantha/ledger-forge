@@ -21,14 +21,12 @@
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-core_2.12</artifactId>
         <version>${spark.version}</version>
-        <scope>provided</scope>
     </dependency>
     <!-- Spark SQL -->
     <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-sql_2.12</artifactId>
         <version>${spark.version}</version>
-        <scope>provided</scope>
     </dependency>
 
     <!-- Typesafe Config (for application.conf) -->
@@ -99,6 +97,36 @@
                 <source>1.8</source>
                 <target>1.8</target>
             </configuration>
+        </plugin>
+
+        <!-- Disable surefire — ScalaTest uses its own maven plugin below -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.2.5</version>
+            <configuration>
+                <skipTests>true</skipTests>
+            </configuration>
+        </plugin>
+
+        <!-- ScalaTest Maven plugin — runs all *Spec / *Suite / *Test classes -->
+        <plugin>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest-maven-plugin</artifactId>
+            <version>2.2.0</version>
+            <configuration>
+                <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+                <junitxml>.</junitxml>
+                <filereports>TestSuiteReport.txt</filereports>
+            </configuration>
+            <executions>
+                <execution>
+                    <id>test</id>
+                    <goals>
+                        <goal>test</goal>
+                    </goals>
+                </execution>
+            </executions>
         </plugin>
 
         <!-- Shade plugin to create an executable fat JAR including the PostgreSQL driver -->
