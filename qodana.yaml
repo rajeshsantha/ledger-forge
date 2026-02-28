@@ -1,0 +1,19 @@
+version: "1.0"
+
+# Free community linter for JVM (Scala/Java/Kotlin) — no token or subscription required.
+# Paid linters (qodana-jvm) require QODANA_TOKEN and a Qodana Cloud subscription.
+linter: jetbrains/qodana-jvm-community:2025.3
+
+# Only report problems introduced in the PR diff (faster, less noise)
+# Set to false to scan the entire codebase on every run
+include:
+  - name: CheckDependencyLicenses
+
+exclude:
+  # Exclude generated/target directories
+  - name: All
+    paths:
+      - target
+      - .idea
+      - data
+
