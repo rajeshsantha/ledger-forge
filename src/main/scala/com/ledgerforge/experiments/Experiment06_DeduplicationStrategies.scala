@@ -58,7 +58,8 @@ object Experiment06_DeduplicationStrategies {
     val duplicates = totalRows - distinctTxnIds
     println(s"Total rows         : $totalRows")
     println(s"Distinct txn IDs   : $distinctTxnIds")
-    println(s"Duplicate rows     : $duplicates (~${(duplicates * 100.0 / totalRows).formatted("%.2f")}%)")
+    val dupPct = duplicates * 100.0 / totalRows
+    println(s"Duplicate rows     : $duplicates (~${f"$dupPct%.2f"}%)")
 
     // Find a sample duplicate for correctness verification
     val sampleDupId = raw.groupBy("transaction_id").count()

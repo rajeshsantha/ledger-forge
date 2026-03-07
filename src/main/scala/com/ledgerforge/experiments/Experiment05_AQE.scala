@@ -143,7 +143,7 @@ object Experiment05_AQE {
     val accounts     = spark.read.parquet(ExperimentUtils.AccountPath)
 
     val pipeline: org.apache.spark.sql.DataFrame = transactions
-      .join(accounts, Seq("account_id"), "inner")
+      .join(accounts.drop("branch_id"), Seq("account_id"), "inner")
       .groupBy("branch_id")
       .agg(
         F.sum("amount").as("total_amount"),

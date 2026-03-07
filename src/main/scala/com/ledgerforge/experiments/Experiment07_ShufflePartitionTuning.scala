@@ -129,7 +129,7 @@ object Experiment07_ShufflePartitionTuning {
 
     val pipeline: org.apache.spark.sql.DataFrame = transactions
       .filter(col("account_id").isNotNull && col("account_id") > 0)
-      .join(accounts, Seq("account_id"), "inner")
+      .join(accounts.drop("branch_id"), Seq("account_id"), "inner")
       .groupBy("branch_id", "account_type")
       .agg(
         F.sum("amount").as("total_amount"),
