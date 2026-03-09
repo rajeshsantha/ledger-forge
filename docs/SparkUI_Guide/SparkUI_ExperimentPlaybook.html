@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Spark UI — Experiment Observation Playbook</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #08090f;
+  --bg2: #0d0f19;
+  --surface: #111421;
+  --surface2: #161a28;
+  --border: #1d2236;
+  --border2: #242a3e;
+  --green: #10b981;
+  --green-dim: rgba(16,185,129,0.1);
+  --green-glow: rgba(16,185,129,0.05);
+  --teal: #14b8a6;
+  --teal-dim: rgba(20,184,166,0.1);
+  --amber: #f59e0b;
+  --amber-dim: rgba(245,158,11,0.1);
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.1);
+  --blue: #3b82f6;
+  --blue-dim: rgba(59,130,246,0.1);
+  --purple: #8b5cf6;
+  --purple-dim: rgba(139,92,246,0.1);
+  --orange: #f97316;
+  --orange-dim: rgba(249,115,22,0.1);
+  --text: #d4d8ec;
+  --text2: #7b85a0;
+  --text3: #444d66;
+  --mono: 'IBM Plex Mono', monospace;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+/* ════════ HERO ════════ */
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 60px 64px 52px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(16,185,129,0.04) 0%, transparent 50%);
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(16,185,129,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16,185,129,0.02) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+.hero-inner { position: relative; max-width: 1100px; }
+
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--green);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--green-dim);
+  border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 100px;
+  padding: 5px 14px;
+  margin-bottom: 20px;
+}
+
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(30px, 5vw, 58px);
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -2px;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.hero-title .accent {
+  background: linear-gradient(90deg, var(--green) 0%, var(--teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  color: var(--text2);
+  font-size: 14px;
+  max-width: 560px;
+  margin-top: 12px;
+  line-height: 1.7;
+}
+
+.hero-pills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.hero-pill {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  background: var(--surface);
+}
+
+/* ════════ NAV ════════ */
+.sticky-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(8,9,15,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 64px;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.sticky-nav::-webkit-scrollbar { display: none; }
+
+.snav-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 14px 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.snav-item:hover, .snav-item.active {
+  color: var(--green);
+  border-bottom-color: var(--green);
+}
+
+/* ════════ LAYOUT ════════ */
+.page { max-width: 1100px; margin: 0 auto; padding: 52px 64px 100px; }
+
+/* ════════ SECTION ════════ */
+.section {
+  margin-bottom: 72px;
+  scroll-margin-top: 60px;
+}
+
+.section-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--green);
+  margin-bottom: 6px;
+}
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  color: #fff;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+/* ════════ BROWSER SETUP ════════ */
+.browser-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+@media (max-width: 800px) { .browser-grid { grid-template-columns: 1fr; } }
+
+.browser-tab {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  transition: border-color 0.2s;
+}
+
+.browser-tab:hover { border-color: var(--border2); }
+
+.tab-num {
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  background: var(--green-dim);
+  border: 1px solid rgba(16,185,129,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.tab-url {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: #93c5fd;
+  margin-bottom: 3px;
+}
+
+.tab-purpose {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+/* ════════ EXPERIMENT CARDS ════════ */
+.exp-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.exp-card:hover {
+  border-color: var(--border2);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+
+.exp-card.open {
+  border-color: rgba(16,185,129,0.3);
+  box-shadow: 0 4px 32px rgba(16,185,129,0.06);
+}
+
+.exp-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+}
+
+.exp-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  letter-spacing: 0.05em;
+}
+
+.exp-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: #e0e7ff;
+  flex: 1;
+}
+
+.exp-subtitle {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 2px;
+}
+
+.exp-chevron {
+  font-size: 10px;
+  color: var(--text3);
+  transition: transform 0.25s;
+  flex-shrink: 0;
+}
+
+.exp-card.open .exp-chevron { transform: rotate(180deg); color: var(--green); }
+
+.exp-body {
+  display: none;
+  border-top: 1px solid var(--border);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.exp-card.open .exp-body { display: block; }
+
+/* ════════ COMPARISON TABLE ════════ */
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  margin: 0;
+}
+
+.comp-table th {
+  background: var(--surface2);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  padding: 8px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.comp-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  color: #a8b4cc;
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.comp-table td:first-child {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: #c5cfff;
+  white-space: nowrap;
+}
+
+.comp-table tr:last-child td { border-bottom: none; }
+.comp-table tr:hover td { background: rgba(16,185,129,0.03); }
+
+/* ════════ OBSERVE LIST ════════ */
+.observe-list {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.obs-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  margin-bottom: 10px;
+}
+
+.obs-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #98a8c0;
+  line-height: 1.6;
+}
+
+.obs-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--text3);
+}
+
+/* ════════ TAB DEEP DIVE ════════ */
+.tab-deep-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 18px 0;
+}
+
+@media (max-width: 800px) { .tab-deep-grid { grid-template-columns: 1fr; } }
+
+.tab-deep-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tdc-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tdc-icon {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.tdc-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: #e0e7ff;
+}
+
+.tdc-url {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 1px;
+}
+
+.tdc-body {
+  padding: 14px 16px;
+}
+
+.tdc-point {
+  display: flex;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 12.5px;
+  color: #8892aa;
+  line-height: 1.55;
+}
+
+.tdc-point:last-child { border-bottom: none; }
+
+.tdc-bullet {
+  color: var(--text3);
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+/* ════════ SIGNAL BOXES ════════ */
+.signal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+@media (max-width: 800px) { .signal-grid { grid-template-columns: 1fr; } }
+
+.signal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.sb-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sb-icon { font-size: 14px; flex-shrink: 0; }
+
+.sb-title {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #d0d8f0;
+}
+
+.sb-body {
+  padding: 12px 14px;
+  font-size: 12.5px;
+  color: #7b85a0;
+  line-height: 1.65;
+}
+
+.sb-body p { margin-bottom: 6px; }
+.sb-body p:last-child { margin-bottom: 0; }
+
+.sb-fix {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--green-dim);
+  border: 1px solid rgba(16,185,129,0.15);
+  border-radius: 6px;
+  font-size: 12px;
+  color: #6ee7b7;
+}
+
+/* ════════ WORKFLOW STEPS ════════ */
+.wf-timeline {
+  position: relative;
+  margin: 18px 0;
+}
+
+.wf-timeline::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 30px;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+}
+
+.wf-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.wf-dot {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.wf-text { flex: 1; padding-top: 5px; }
+.wf-step-title { font-weight: 600; color: #c5cfff; font-size: 14px; margin-bottom: 3px; }
+.wf-step-desc { font-size: 13px; color: #7b85a0; line-height: 1.65; }
+
+/* ════════ CHECKLIST ════════ */
+.checklist-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 18px 0;
+}
+
+@media (max-width: 800px) { .checklist-grid { grid-template-columns: 1fr; } }
+
+.cl-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.cl-head {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cl-body { padding: 14px 16px; }
+
+.cl-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 12.5px;
+  color: #8892aa;
+  line-height: 1.5;
+}
+
+.cl-item:last-child { border-bottom: none; }
+
+.cl-box {
+  width: 15px; height: 15px;
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  background: var(--surface2);
+}
+
+.cl-blank {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  border-bottom: 1px solid var(--border2);
+  min-width: 40px;
+  display: inline-block;
+  margin-left: 4px;
+}
+
+/* ════════ COMPARISON TABLE FULL ════════ */
+.metric-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 18px 0;
+}
+
+.mt-title {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+}
+
+/* ════════ REFLECTION QUESTIONS ════════ */
+.reflect-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+@media (max-width: 900px) { .reflect-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .reflect-grid { grid-template-columns: 1fr; } }
+
+.reflect-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.reflect-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  margin-bottom: 6px;
+}
+
+.reflect-q {
+  font-size: 12.5px;
+  color: #8892aa;
+  line-height: 1.6;
+}
+
+/* ════════ CODE & INLINE ════════ */
+code {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  background: rgba(59,130,246,0.1);
+  border: 1px solid rgba(59,130,246,0.18);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: #93c5fd;
+}
+
+pre {
+  background: #06070d;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: #6b7faa;
+  line-height: 1.6;
+  margin: 12px 0;
+}
+
+pre .url { color: #67e8f9; }
+pre .arrow { color: var(--text3); }
+pre .label { color: #fde68a; }
+pre .good { color: var(--green); }
+pre .bad { color: var(--red); }
+
+/* ════════ INFO BOXES ════════ */
+.tip-box {
+  background: var(--green-dim);
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin: 12px 0;
+  font-size: 13px;
+  color: #6ee7b7;
+  display: flex;
+  gap: 10px;
+  line-height: 1.6;
+}
+
+.warn-box {
+  background: var(--amber-dim);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin: 12px 0;
+  font-size: 13px;
+  color: #fcd34d;
+  display: flex;
+  gap: 10px;
+  line-height: 1.6;
+}
+
+.danger-box {
+  background: var(--red-dim);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin: 12px 0;
+  font-size: 13px;
+  color: #fca5a5;
+  display: flex;
+  gap: 10px;
+  line-height: 1.6;
+}
+
+/* ════════ BODY TEXT ════════ */
+.body-p {
+  font-size: 14px;
+  color: #8892aa;
+  line-height: 1.8;
+  margin-bottom: 14px;
+}
+
+/* ════════ LIVE SIGNAL INDICATORS ════════ */
+.live-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--red);
+  background: var(--red-dim);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 20px;
+  padding: 2px 8px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.live-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ════════ DIFF BADGES ════════ */
+.badge-baseline {
+  font-family: var(--mono);
+  font-size: 9px;
+  background: var(--red-dim);
+  color: #fca5a5;
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+.badge-opt {
+  font-family: var(--mono);
+  font-size: 9px;
+  background: var(--green-dim);
+  color: #6ee7b7;
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+/* ════════ RESPONSIVE ════════ */
+@media (max-width: 768px) {
+  .page { padding: 24px 16px 60px; }
+  .hero { padding: 36px 16px 30px; }
+  .sticky-nav { padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-tag">🔬 Hands-On Observation Guide · LedgerForge Experiments</div>
+    <div class="hero-title">Spark UI<br><span class="accent">Experiment Playbook</span></div>
+    <div class="hero-sub">A structured guide for deeply observing the Spark UI while running the 8 LedgerForge performance experiments. Know <em>exactly</em> why the optimized version is faster — in terms of plan nodes, exchange counts, task distributions, and concrete metrics.</div>
+    <div class="hero-pills">
+      <span class="hero-pill">http://localhost:4040</span>
+      <span class="hero-pill">8 Experiments</span>
+      <span class="hero-pill">5 UI Tabs</span>
+      <span class="hero-pill">Live Observation Checklists</span>
+      <span class="hero-pill">Before / After Comparisons</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ NAV ══════════════════ -->
+<nav class="sticky-nav">
+  <a class="snav-item active" href="#s1">📋 Browser Setup</a>
+  <a class="snav-item" href="#s2">🔬 Experiments</a>
+  <a class="snav-item" href="#s3">🔄 Investigation Workflow</a>
+  <a class="snav-item" href="#s4">🚨 Problem Signals</a>
+  <a class="snav-item" href="#s5">✅ Learning Checklist</a>
+</nav>
+
+<div class="page">
+
+<!-- ══════════════════════════════════════════════
+     SECTION 1 — BROWSER SETUP
+══════════════════════════════════════════════ -->
+<div class="section" id="s1">
+  <div class="section-eyebrow">SECTION 01</div>
+  <div class="section-title">How to Observe Spark UI While Running Experiments</div>
+
+  <p class="body-p">The key insight: <strong>open Spark UI before the job starts, not after it finishes.</strong> Most experiments complete in minutes — if you only look after completion, you miss the live execution view, straggler detection, and real-time task distribution. Open four browser tabs pre-loaded with the four most useful views before you run a single line of code.</p>
+
+  <div class="warn-box"><span>⚠️</span> Spark UI does <strong>not auto-refresh.</strong> Manually refresh every 10–30 seconds during execution. Set a timer if needed — missing the peak of a skewed stage means missing the most important diagnostic moment.</div>
+
+  <!-- Browser tabs -->
+  <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text3);margin:20px 0 10px">Pre-load These 4 Browser Tabs Before Every Experiment</div>
+  <div class="browser-grid">
+    <div class="browser-tab">
+      <div class="tab-num">1</div>
+      <div>
+        <div class="tab-url">localhost:4040/jobs/</div>
+        <div class="tab-purpose">Watch active jobs. Count stages, spot stalling progress bars, confirm you're watching the right job.</div>
+      </div>
+    </div>
+    <div class="browser-tab">
+      <div class="tab-num">2</div>
+      <div>
+        <div class="tab-url">localhost:4040/stages/</div>
+        <div class="tab-purpose">Watch active stages and live task distributions. Click into active stages to see the real-time task histogram.</div>
+      </div>
+    </div>
+    <div class="browser-tab">
+      <div class="tab-num">3</div>
+      <div>
+        <div class="tab-url">localhost:4040/SQL/</div>
+        <div class="tab-purpose">Inspect physical plans. Populates as soon as Spark submits the query — before tasks start running.</div>
+      </div>
+    </div>
+    <div class="browser-tab">
+      <div class="tab-num">4</div>
+      <div>
+        <div class="tab-url">localhost:4040/executors/</div>
+        <div class="tab-purpose">Watch resource usage, GC time, shuffle imbalance, and dead executors in real time.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab deep dives -->
+  <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text3);margin:24px 0 12px">What to Track Live in Each Tab</div>
+  <div class="tab-deep-grid">
+    <div class="tab-deep-card">
+      <div class="tdc-head">
+        <div class="tdc-icon" style="background:var(--blue-dim)">📋</div>
+        <div>
+          <div class="tdc-title">Jobs Tab <span class="live-chip"><span class="live-dot"></span>LIVE</span></div>
+          <div class="tdc-url">/jobs/</div>
+        </div>
+      </div>
+      <div class="tdc-body">
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>Stages Succeeded/Total</strong> — e.g. <code>2/4</code> means 2 done, 2 in progress. Count stages before and after optimization to confirm shuffles reduced.</span></div>
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>Task progress bar stalling at 90%+</strong> — if the bar stays frozen near the end for a long time, one or a few tasks are stragglers. Navigate immediately to Stages tab.</span></div>
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>Job description link</strong> — links to source file + line number. Use to confirm you're watching baseline vs. optimized run.</span></div>
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>Live signal</strong> — pattern like <code>180/423 (9 running)</code> means 9 tasks running while 180 are done. If those 9 have been running much longer than others → skew.</span></div>
+      </div>
+    </div>
+    <div class="tab-deep-card">
+      <div class="tdc-head">
+        <div class="tdc-icon" style="background:var(--orange-dim)">📊</div>
+        <div>
+          <div class="tdc-title">Stages Tab <span class="live-chip"><span class="live-dot"></span>LIVE</span></div>
+          <div class="tdc-url">/stages/</div>
+        </div>
+      </div>
+      <div class="tdc-body">
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>Task duration column</strong> — sort descending. If max duration is 10× median, you have skew. This is your most important metric.</span></div>
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>Shuffle Read Size column</strong> — sort descending. If one task reads far more bytes than others, that's the skewed key.</span></div>
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>Locality Level column</strong> — <code>PROCESS_LOCAL</code> (fastest) vs. <code>ANY</code> (cross-rack network fetch). High <code>ANY</code> = scheduler couldn't place tasks near data.</span></div>
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>GC Time column</strong> — sort descending. Task with GC &gt; 10% of duration is under memory pressure.</span></div>
+      </div>
+    </div>
+    <div class="tab-deep-card">
+      <div class="tdc-head">
+        <div class="tdc-icon" style="background:var(--purple-dim)">🗺️</div>
+        <div>
+          <div class="tdc-title">SQL Tab</div>
+          <div class="tdc-url">/SQL/ — populates before tasks start</div>
+        </div>
+      </div>
+      <div class="tdc-body">
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>Count Exchange nodes immediately.</strong> Baseline should have more; optimized should have fewer or different types.</span></div>
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>Find join node type.</strong> <code>SortMergeJoin</code> vs. <code>BroadcastHashJoin</code> is the most critical difference to find.</span></div>
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>FileScan node.</strong> Look for <code>PartitionFilters</code> in scan details. If empty, partition pruning is broken.</span></div>
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>AdaptiveSparkPlan wrapper.</strong> If present, AQE is active — plan may change between start and completion. Always read the final executed plan.</span></div>
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>Row count estimates.</strong> If wildly wrong (50M estimated as 100), optimizer is flying blind — statistics are missing.</span></div>
+      </div>
+    </div>
+    <div class="tab-deep-card">
+      <div class="tdc-head">
+        <div class="tdc-icon" style="background:var(--teal-dim)">🖥️</div>
+        <div>
+          <div class="tdc-title">Executors Tab <span class="live-chip"><span class="live-dot"></span>LIVE</span></div>
+          <div class="tdc-url">/executors/ — check every minute</div>
+        </div>
+      </div>
+      <div class="tdc-body">
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>GC Time column</strong> — should show GC as a small fraction of total task time. High = heap pressure.</span></div>
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>Shuffle Read/Write per executor</strong> — should be roughly balanced. Large imbalance = data skew confirmed at executor level.</span></div>
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>Failed Tasks column</strong> — any value &gt; 0 warrants investigation. Click the executor ID link to access executor logs.</span></div>
+        <div class="tdc-point"><span class="tdc-bullet">→</span><span><strong>Storage Memory Used/Total</strong> — if at 100%, executor is under memory pressure and cached DataFrames may be evicted mid-job.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Storage tab -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-top:14px">
+    <div style="font-family:var(--mono);font-size:11px;font-weight:600;color:#e0e7ff;margin-bottom:8px">🗄️ Storage Tab — For Caching Experiments</div>
+    <div style="font-size:13px;color:#7b85a0;line-height:1.7">
+      <div>• <strong style="color:#c5cfff">Before <code>.cache()</code></strong>: tab is empty.</div>
+      <div>• <strong style="color:#c5cfff">After first action</strong> that triggers caching: a new entry appears with storage level, partition count, and size.</div>
+      <div>• <strong style="color:#c5cfff">Fraction Cached</strong> must reach <code>1.0</code> (100%) for the cache to be fully effective. Any value below 1.0 = eviction happening.</div>
+      <div>• <strong style="color:#c5cfff">Compare</strong> <code>Size in Memory</code> between <code>MEMORY_ONLY</code>, <code>MEMORY_AND_DISK</code>, and <code>DISK_ONLY</code> storage levels to measure serialization overhead.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 2 — EXPERIMENTS
+══════════════════════════════════════════════ -->
+<div class="section" id="s2">
+  <div class="section-eyebrow">SECTION 02</div>
+  <div class="section-title">What to Look For During Each Experiment</div>
+  <p class="body-p">For each experiment, the table shows the baseline vs. optimized difference. The observation steps tell you <em>where exactly</em> to look and <em>what to click</em> in the UI.</p>
+
+  <!-- EXP 01 -->
+  <div class="exp-card" onclick="toggleExp(this)">
+    <div class="exp-header">
+      <span class="exp-num" style="background:var(--red-dim);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)">EXP 01</span>
+      <div style="flex:1">
+        <div class="exp-title">Skewed Joins — Salting</div>
+        <div class="exp-subtitle">Naive join on account_id vs. salted join to distribute hot keys</div>
+      </div>
+      <span class="exp-chevron">▼</span>
+    </div>
+    <div class="exp-body">
+      <div style="overflow-x:auto;border-bottom:1px solid var(--border)">
+        <table class="comp-table">
+          <tr><th>Aspect</th><th><span class="badge-baseline">BASELINE</span> Naive Join</th><th><span class="badge-opt">OPTIMIZED</span> Salted Join</th></tr>
+          <tr><td>Join type</td><td>SortMergeJoin on account_id</td><td>SortMergeJoin on (salt, account_id)</td></tr>
+          <tr><td>Task distribution</td><td>Extreme right tail — 1 massive straggler</td><td>Roughly even histogram</td></tr>
+          <tr><td>Max task duration</td><td>Minutes (10–100× median)</td><td>Similar to median task time</td></tr>
+          <tr><td>Shuffle Read max/median ratio</td><td>&gt; 100× (one task reads most data)</td><td>&lt; 5× (uniform distribution)</td></tr>
+          <tr><td>Physical plan</td><td>Simple join node on account_id</td><td>Extra Project (salt), join on (salt, account_id), salt drop</td></tr>
+          <tr><td>Stage count</td><td>N stages</td><td>N+1 stages (extra for salt explode on small side)</td></tr>
+        </table>
+      </div>
+      <div class="observe-list">
+        <div class="obs-title">Step-by-Step Observation</div>
+        <div class="obs-item"><span class="obs-num">1</span><span>In the <strong>baseline</strong>: click into the join stage → sort tasks by <strong>Shuffle Read Size</strong> descending → observe the top task reading orders of magnitude more data than the median. This is your hot key.</span></div>
+        <div class="obs-item"><span class="obs-num">2</span><span>Look at the task duration histogram — confirm the right tail. One bar should extend far beyond the cluster of normal tasks.</span></div>
+        <div class="obs-item"><span class="obs-num">3</span><span>In the <strong>optimized</strong>: find the additional pre-join <code>Project</code> stage in the SQL plan that adds the salt column. This is the overhead of the technique.</span></div>
+        <div class="obs-item"><span class="obs-num">4</span><span>The join stage in the optimized run should show a uniform task duration histogram — no right tail. Max/median ratio should be &lt;3×.</span></div>
+        <div class="obs-item"><span class="obs-num">5</span><span>The optimized plan will have one extra stage (for the salt explode/replicate on the small side), but each stage will have balanced tasks. Total time should still be faster despite the extra stage.</span></div>
+        <div class="obs-item"><span class="obs-num">6</span><span><strong>Bonus:</strong> Check the Executors tab during baseline run — one executor should show far higher Shuffle Read than others. In the optimized run, shuffle should be balanced across all executors.</span></div>
+      </div>
+      <div style="padding:14px 20px">
+        <div class="tip-box"><span>💡</span> AQE's automatic skew join optimization (<code>spark.sql.adaptive.skewJoin.enabled = true</code>) can handle this without manual salting. Run the experiment a third time with AQE enabled — compare all three plans side by side. AQE-handled skew shows <code>SkewJoin=true</code> on the SortMergeJoin node.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXP 02 -->
+  <div class="exp-card" onclick="toggleExp(this)">
+    <div class="exp-header">
+      <span class="exp-num" style="background:var(--blue-dim);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">EXP 02</span>
+      <div style="flex:1">
+        <div class="exp-title">Broadcast Joins</div>
+        <div class="exp-subtitle">SortMergeJoin vs. BroadcastHashJoin for small dimension tables</div>
+      </div>
+      <span class="exp-chevron">▼</span>
+    </div>
+    <div class="exp-body">
+      <div style="overflow-x:auto;border-bottom:1px solid var(--border)">
+        <table class="comp-table">
+          <tr><th>Aspect</th><th><span class="badge-baseline">BASELINE</span> SortMergeJoin</th><th><span class="badge-opt">OPTIMIZED</span> BroadcastHashJoin</th></tr>
+          <tr><td>Exchange nodes</td><td>2 (one per join side)</td><td>1 BroadcastExchange (small side only)</td></tr>
+          <tr><td>Stage count</td><td>3 (two shuffle stages + join)</td><td>2 (scan/filter + join)</td></tr>
+          <tr><td>Shuffle Write (large side)</td><td>Hundreds of MB</td><td>0 — large side never shuffled</td></tr>
+          <tr><td>Join node in SQL tab</td><td>SortMergeJoin</td><td>BroadcastHashJoin</td></tr>
+          <tr><td>Sort nodes in plan</td><td>Yes (before each SMJ input)</td><td>None — no sorting needed for hash probe</td></tr>
+        </table>
+      </div>
+      <div class="observe-list">
+        <div class="obs-title">Step-by-Step Observation</div>
+        <div class="obs-item"><span class="obs-num">1</span><span><strong>Baseline SQL tab</strong>: find two <code>Exchange hashpartitioning(...)</code> nodes feeding a <code>Sort</code> feeding <code>SortMergeJoin</code>. Count them — this is the shuffle tax you're eliminating.</span></div>
+        <div class="obs-item"><span class="obs-num">2</span><span><strong>Optimized SQL tab</strong>: find <code>BroadcastExchange</code> on the small side only feeding <code>BroadcastHashJoin</code>. Crucially, there is <strong>no Exchange node for the large side</strong> — this is the entire speedup mechanism.</span></div>
+        <div class="obs-item"><span class="obs-num">3</span><span>In the <strong>Stages tab</strong>: the baseline has a shuffle stage for the large table with significant Shuffle Write. In the optimized run, this stage disappears entirely.</span></div>
+        <div class="obs-item"><span class="obs-num">4</span><span>Confirm in <strong>Jobs tab</strong>: the optimized job should show fewer stages total (<code>Stages: Succeeded/Total</code>).</span></div>
+        <div class="obs-item"><span class="obs-num">5</span><span>If BroadcastHashJoin is not appearing when expected: check <code>spark.sql.autoBroadcastJoinThreshold</code> in the Environment tab. If -1, broadcasting is disabled. Also check if statistics are computed (<code>ANALYZE TABLE</code>).</span></div>
+      </div>
+      <div style="padding:14px 20px">
+        <div class="tip-box"><span>💡</span> The Environment tab (<code>/environment/</code>) is the ground truth for all Spark configs. Always verify <code>autoBroadcastJoinThreshold</code> here — if it's lower than your small table's actual size, broadcasts are silently disabled even without setting it to -1.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXP 03 -->
+  <div class="exp-card" onclick="toggleExp(this)">
+    <div class="exp-header">
+      <span class="exp-num" style="background:var(--green-dim);color:#6ee7b7;border:1px solid rgba(16,185,129,0.2)">EXP 03</span>
+      <div style="flex:1">
+        <div class="exp-title">Partition Pruning</div>
+        <div class="exp-subtitle">Full table scan vs. reading only filtered event_date partitions</div>
+      </div>
+      <span class="exp-chevron">▼</span>
+    </div>
+    <div class="exp-body">
+      <div style="overflow-x:auto;border-bottom:1px solid var(--border)">
+        <table class="comp-table">
+          <tr><th>Aspect</th><th><span class="badge-baseline">BASELINE</span> Full Scan</th><th><span class="badge-opt">OPTIMIZED</span> Pruned</th></tr>
+          <tr><td>FileScan partitions read</td><td>30 (all 30 date partitions)</td><td>1–3 (only filtered dates)</td></tr>
+          <tr><td>Input size (Stages tab)</td><td>Full 50M row dataset</td><td>Small fraction — 1–3 day subset</td></tr>
+          <tr><td>PartitionFilters in SQL tab</td><td>[] (empty — not pushed down)</td><td>[isnotnull(event_date), (event_date = '2024-01-15')]</td></tr>
+          <tr><td>Stage duration</td><td>Long — reading unnecessary data</td><td>Short — minimal I/O</td></tr>
+          <tr><td>Records read</td><td>All 50M rows</td><td>~1.6M rows (1/30th)</td></tr>
+        </table>
+      </div>
+      <div class="observe-list">
+        <div class="obs-title">Step-by-Step Observation</div>
+        <div class="obs-item"><span class="obs-num">1</span><span>In the <strong>SQL tab</strong>, click the <code>FileScan</code> node for the baseline. Look at the <strong>PartitionFilters</strong> field — it should be empty <code>[]</code>, confirming Spark is reading all 30 date partitions.</span></div>
+        <div class="obs-item"><span class="obs-num">2</span><span>In the <strong>Stages tab</strong>, look at the <strong>Input</strong> column for the scan stage — it should show the full dataset size.</span></div>
+        <div class="obs-item"><span class="obs-num">3</span><span>In the <strong>optimized SQL tab</strong>, click the <code>FileScan</code> node — <code>PartitionFilters</code> should now show your date filter. The <code>PushedFilters</code> field should also be populated for row-level predicates.</span></div>
+        <div class="obs-item"><span class="obs-num">4</span><span>Note: <code>PushedFilters</code> (row-level, inside the Parquet reader) is different from <code>PartitionFilters</code> (directory-level). Both should be populated in a fully optimized plan.</span></div>
+        <div class="obs-item"><span class="obs-num">5</span><span>Common failure mode: <code>year(event_date) = 2024</code> will NOT trigger partition pruning because Spark can't infer which directories to skip from a UDF call. Use <code>event_date &gt;= '2024-01-01' AND event_date &lt; '2025-01-01'</code> instead.</span></div>
+      </div>
+      <div style="padding:14px 20px">
+        <div class="warn-box"><span>⚠️</span> Dynamic Partition Pruning (DPP) is different from static partition pruning. DPP triggers when a filter value comes from a join result (e.g., filter on a fact table based on a dimension value). DPP requires AQE and a specific join pattern — check the SQL plan for a <code>DynamicPruningExpression</code> node when testing DPP scenarios.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXP 04 -->
+  <div class="exp-card" onclick="toggleExp(this)">
+    <div class="exp-header">
+      <span class="exp-num" style="background:var(--amber-dim);color:#fcd34d;border:1px solid rgba(245,158,11,0.2)">EXP 04</span>
+      <div style="flex:1">
+        <div class="exp-title">Caching Strategies</div>
+        <div class="exp-subtitle">No cache vs. cache() vs. persist() vs. checkpoint() — 3 consumers</div>
+      </div>
+      <span class="exp-chevron">▼</span>
+    </div>
+    <div class="exp-body">
+      <div style="overflow-x:auto;border-bottom:1px solid var(--border)">
+        <table class="comp-table">
+          <tr><th>Aspect</th><th><span class="badge-baseline">NO CACHE</span></th><th><span class="badge-opt">WITH CACHE</span></th></tr>
+          <tr><td>Job count (for 3 consumers)</td><td>3 × full DAG recomputed</td><td>1 full DAG + 2 cheap reads from cache</td></tr>
+          <tr><td>Storage tab entries</td><td>Empty</td><td>1 entry per cached DataFrame</td></tr>
+          <tr><td>Job duration (2nd and 3rd)</td><td>Same as 1st job — full recompute</td><td>Very fast — reads from memory/disk</td></tr>
+          <tr><td>Plan for cached queries</td><td>Full FileScan + Filter + ... DAG</td><td>InMemoryTableScan (single fast node)</td></tr>
+          <tr><td>Stage count per consumer</td><td>Full pipeline stages repeated</td><td>1–2 stages — just reads cached data</td></tr>
+        </table>
+      </div>
+      <div class="observe-list">
+        <div class="obs-title">Step-by-Step Observation</div>
+        <div class="obs-item"><span class="obs-num">1</span><span><strong>Without cache</strong>: run and count jobs in the Jobs tab. Three separate queries each show a full DAG — all the same expensive stages replicated 3 times.</span></div>
+        <div class="obs-item"><span class="obs-num">2</span><span><strong>With <code>.cache()</code></strong>: after the first action, go to the <strong>Storage tab</strong> — confirm an entry appears with <code>Fraction Cached = 1.0</code>. If it shows &lt;1.0, some partitions were evicted.</span></div>
+        <div class="obs-item"><span class="obs-num">3</span><span>The 2nd and 3rd jobs should complete in seconds with far fewer stages. In the SQL tab, the physical plan for cached queries shows <code>InMemoryTableScan</code> instead of the original complex DAG.</span></div>
+        <div class="obs-item"><span class="obs-num">4</span><span>Compare <code>MEMORY_ONLY</code> vs. <code>DISK_ONLY</code>: the Storage tab shows <code>Size in Memory = 0</code> for DISK_ONLY. Stage durations for the 2nd/3rd consumers will be longer due to disk I/O instead of RAM reads.</span></div>
+        <div class="obs-item"><span class="obs-num">5</span><span><strong>Checkpoint experiment</strong>: unlike cache/persist, checkpoint is eager — it immediately triggers computation and writes to HDFS/S3. Check that the checkpoint write appears as a separate job in the Jobs tab. After checkpointing, the lineage graph in the SQL tab should be truncated — the plan starts at the checkpoint, not the original scan.</span></div>
+      </div>
+      <div style="padding:14px 20px">
+        <div class="tip-box"><span>💡</span> Call <code>.unpersist()</code> between experiments to clean up cached DataFrames. Check the Storage tab after unpersist to confirm the entry disappears. Stale cached DataFrames across experiments contaminate your measurements by holding executor memory that other DataFrames need.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXP 05 -->
+  <div class="exp-card" onclick="toggleExp(this)">
+    <div class="exp-header">
+      <span class="exp-num" style="background:var(--teal-dim);color:#5eead4;border:1px solid rgba(20,184,166,0.2)">EXP 05</span>
+      <div style="flex:1">
+        <div class="exp-title">Adaptive Query Execution (AQE)</div>
+        <div class="exp-subtitle">AQE off vs. AQE on vs. AQE + skew optimization</div>
+      </div>
+      <span class="exp-chevron">▼</span>
+    </div>
+    <div class="exp-body">
+      <div style="overflow-x:auto;border-bottom:1px solid var(--border)">
+        <table class="comp-table">
+          <tr><th>Aspect</th><th><span class="badge-baseline">AQE OFF</span></th><th><span class="badge-opt">AQE ON</span></th></tr>
+          <tr><td>Physical plan root node</td><td>Standard physical plan</td><td>AdaptiveSparkPlan wrapper</td></tr>
+          <tr><td>Post-shuffle partition count</td><td>Always equals shuffle.partitions (e.g. 200)</td><td>Fewer — coalesced small partitions (e.g. 12)</td></tr>
+          <tr><td>Join type at runtime</td><td>Stays SortMergeJoin even if build side shrinks</td><td>May upgrade to BroadcastHashJoin at runtime</td></tr>
+          <tr><td>Skewed join handling</td><td>One massive straggler task</td><td>Multiple balanced tasks (partition split)</td></tr>
+          <tr><td>Post-shuffle plan node</td><td>Exchange</td><td>AQEShuffleRead (coalesced)</td></tr>
+        </table>
+      </div>
+      <div class="observe-list">
+        <div class="obs-title">Step-by-Step Observation</div>
+        <div class="obs-item"><span class="obs-num">1</span><span><strong>AQE Off</strong>: SQL tab shows a static physical plan with fixed Exchange nodes. Stages tab shows exactly <code>shuffle.partitions</code> (e.g., 200) tasks in every post-shuffle stage — regardless of actual data size.</span></div>
+        <div class="obs-item"><span class="obs-num">2</span><span><strong>AQE On</strong>: SQL tab shows <code>AdaptiveSparkPlan</code> at the root. After execution, expand the <strong>"Final Plan"</strong> section and compare it to the initial plan — they will likely differ.</span></div>
+        <div class="obs-item"><span class="obs-num">3</span><span>Look for <code>AQEShuffleRead</code> in the final plan — this replaces <code>Exchange</code> in the reduced-partition stages. Count tasks in the post-shuffle stage: expect a dramatic reduction (e.g., 200 → 15 tasks for a small dataset).</span></div>
+        <div class="obs-item"><span class="obs-num">4</span><span><strong>Skew sub-experiment</strong> (<code>skewJoin.enabled = true</code>): look for <code>SkewJoin=true</code> annotation on the SortMergeJoin node. Observe <em>more</em> tasks than <code>shuffle.partitions</code> in that stage — because the skewed partition was split into sub-tasks.</span></div>
+        <div class="obs-item"><span class="obs-num">5</span><span>Track the key metric: <strong>Shuffle Read Size (median per task)</strong>. With AQE coalescing, fewer tasks each process more data — median should be closer to the 100–200MB target. Without AQE, 200 tasks each processing 500KB means 99% scheduling overhead.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXP 06 -->
+  <div class="exp-card" onclick="toggleExp(this)">
+    <div class="exp-header">
+      <span class="exp-num" style="background:var(--purple-dim);color:#c4b5fd;border:1px solid rgba(139,92,246,0.2)">EXP 06</span>
+      <div style="flex:1">
+        <div class="exp-title">Deduplication Strategies</div>
+        <div class="exp-subtitle">dropDuplicates vs. row_number() window vs. struct-max aggregation</div>
+      </div>
+      <span class="exp-chevron">▼</span>
+    </div>
+    <div class="exp-body">
+      <div style="overflow-x:auto;border-bottom:1px solid var(--border)">
+        <table class="comp-table">
+          <tr><th>Aspect</th><th>dropDuplicates</th><th>row_number() Window</th><th>Struct-max Agg</th></tr>
+          <tr><td>Physical plan</td><td>Sort + Exchange + HashAggregate</td><td>Exchange + Sort + Window</td><td>Exchange + HashAggregate</td></tr>
+          <tr><td>Determinism</td><td>Non-deterministic (any row kept)</td><td>Deterministic (specific row by order)</td><td>Deterministic</td></tr>
+          <tr><td>Shuffle volume</td><td>Full dataset shuffled</td><td>Full dataset shuffled</td><td>Reduced (partial agg before shuffle)</td></tr>
+          <tr><td>SQL plan node</td><td>No Window node</td><td>Window node present</td><td>Two HashAggregate nodes</td></tr>
+        </table>
+      </div>
+      <div class="observe-list">
+        <div class="obs-title">Step-by-Step Observation</div>
+        <div class="obs-item"><span class="obs-num">1</span><span>In the SQL tab, look for a <code>Window</code> node in the <code>row_number()</code> plan. This confirms the window function is being used. The window plan shows a <code>Sort</code> inside the window for ordering — extra CPU overhead vs. aggregation.</span></div>
+        <div class="obs-item"><span class="obs-num">2</span><span>Compare shuffle sizes between approaches in the Stages tab — the struct-max aggregation may show smaller Shuffle Write because aggregation can happen <em>partially before</em> the shuffle (look for two HashAggregate nodes: one pre-shuffle, one post-shuffle).</span></div>
+        <div class="obs-item"><span class="obs-num">3</span><span>For production datasets with ~2% duplicate rate, the struct-max approach should show the smallest shuffle write in the Stages tab. More data moves in the window/dropDuplicates approaches because no pre-shuffle reduction is possible.</span></div>
+        <div class="obs-item"><span class="obs-num">4</span><span><strong>Critical for production</strong>: <code>dropDuplicates("transaction_id")</code> keeps an arbitrary row from each duplicate group — verify this matches your business requirement. If you need to keep the <em>latest</em> row (by ingest_date), only <code>row_number()</code> with explicit ordering guarantees this.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXP 07 -->
+  <div class="exp-card" onclick="toggleExp(this)">
+    <div class="exp-header">
+      <span class="exp-num" style="background:var(--orange-dim);color:#fdba74;border:1px solid rgba(249,115,22,0.2)">EXP 07</span>
+      <div style="flex:1">
+        <div class="exp-title">Shuffle Partition Tuning</div>
+        <div class="exp-subtitle">Default 200 vs. tuned N vs. AQE auto-coalesce</div>
+      </div>
+      <span class="exp-chevron">▼</span>
+    </div>
+    <div class="exp-body">
+      <div style="overflow-x:auto;border-bottom:1px solid var(--border)">
+        <table class="comp-table">
+          <tr><th>Aspect</th><th><span class="badge-baseline">200 partitions</span> (default)</th><th>Tuned N</th><th><span class="badge-opt">AQE auto-coalesce</span></th></tr>
+          <tr><td>Task count in shuffle stages</td><td>200 (fixed)</td><td>N (your tuned value)</td><td>Varies — auto-adapted, often &lt;20</td></tr>
+          <tr><td>Per-task shuffle read size</td><td>Tiny if data is small (e.g. 500KB)</td><td>Target 100–200MB</td><td>Auto-adjusted to ~1MB+ minimum</td></tr>
+          <tr><td>Task overhead</td><td>High — 200 task launches for tiny data</td><td>Lower — right-sized tasks</td><td>Lowest — minimal tasks needed</td></tr>
+          <tr><td>Plan node for shuffle read</td><td>Exchange</td><td>Exchange</td><td>AQEShuffleRead</td></tr>
+        </table>
+      </div>
+      <div class="observe-list">
+        <div class="obs-title">Step-by-Step Observation</div>
+        <div class="obs-item"><span class="obs-num">1</span><span><strong>With 200 partitions on a small dataset</strong>: Stages tab shows 200 tasks per shuffle stage, each processing maybe 200–500KB. Stage duration is dominated by task scheduling overhead, not computation. The task histogram will show 200 tiny fast bars.</span></div>
+        <div class="obs-item"><span class="obs-num">2</span><span><strong>With tuned N</strong>: fewer tasks, each processing more data. Stage duration decreases significantly. Find the optimal N using: <code>N ≈ total_shuffle_write_bytes / (128 * 1024 * 1024)</code>. Check shuffle write in Stages tab to get total shuffle write size.</span></div>
+        <div class="obs-item"><span class="obs-num">3</span><span><strong>With AQE</strong>: SQL tab shows <code>AQEShuffleRead</code> and the number of tasks adapts automatically. Check the final coalesced partition count — it should be far below 200 for small datasets.</span></div>
+        <div class="obs-item"><span class="obs-num">4</span><span><strong>Key metric to track</strong>: <strong>Shuffle Read Size (median per task)</strong>. Target 100–200MB per task. Use this to back-calculate the right <code>spark.sql.shuffle.partitions</code> value for your specific data size.</span></div>
+      </div>
+      <div style="padding:14px 20px">
+        <div class="tip-box"><span>💡</span> The formula: optimal partition count ≈ total_shuffle_write / 128MB. Example: if Stages tab shows 12.8GB total shuffle write → set shuffle.partitions = 100. Enable AQE to let Spark auto-tune from there. Never blindly use the default 200 in production — it's tuned for clusters, not local mode with small data.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXP 08 -->
+  <div class="exp-card" onclick="toggleExp(this)">
+    <div class="exp-header">
+      <span class="exp-num" style="background:var(--red-dim);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)">EXP 08</span>
+      <div style="flex:1">
+        <div class="exp-title">UDF vs. Native Expressions</div>
+        <div class="exp-subtitle">Scala UDF breaks WholeStageCodegen — native when/otherwise stays inside codegen</div>
+      </div>
+      <span class="exp-chevron">▼</span>
+    </div>
+    <div class="exp-body">
+      <div style="overflow-x:auto;border-bottom:1px solid var(--border)">
+        <table class="comp-table">
+          <tr><th>Aspect</th><th><span class="badge-baseline">Scala UDF</span></th><th><span class="badge-opt">Native when/otherwise</span></th></tr>
+          <tr><td>WholeStageCodegen</td><td>Broken — UDF is opaque to Catalyst</td><td>Intact — fused into one codegen block</td></tr>
+          <tr><td>Physical plan signature</td><td>DeserializeToObject → MapPartitions → SerializeFromObject</td><td>*(N) Project [...CASE WHEN...] — inside codegen</td></tr>
+          <tr><td>CPU time per task</td><td>Higher — boxing/unboxing, object allocation</td><td>Lower — tight generated loop, no objects</td></tr>
+          <tr><td>GC time</td><td>Higher — intermediate JVM objects per row</td><td>Lower — no row-level object creation</td></tr>
+          <tr><td>Stage duration</td><td>Longer for same record count</td><td>Shorter — 3–10× improvement typical</td></tr>
+        </table>
+      </div>
+      <div class="observe-list">
+        <div class="obs-title">Step-by-Step Observation</div>
+        <div class="obs-item"><span class="obs-num">1</span><span>In the SQL tab, look at the physical plan text (use <code>.explain("formatted")</code> for cleaner output). <strong>UDF plan</strong>: the UDF computation appears <em>outside</em> <code>WholeStageCodegen</code> brackets. You will see <code>DeserializeToObject</code>, <code>MapPartitions</code>, <code>SerializeFromObject</code> — these are the boundary-crossing nodes.</span></div>
+        <div class="obs-item"><span class="obs-num">2</span><span><strong>Optimized plan</strong>: the <code>CASE WHEN ... THEN ...</code> logic is fused inside <code>*(N) Project [...]</code>. The entire operation is in one codegen block — look for the asterisk <code>*</code> prefix indicating JIT compilation.</span></div>
+        <div class="obs-item"><span class="obs-num">3</span><span>In the <strong>Stages tab</strong>, compare GC time between the two approaches. The UDF version will show higher GC time per task due to boxing/unboxing and intermediate object allocation.</span></div>
+        <div class="obs-item"><span class="obs-num">4</span><span>Also compare <strong>CPU time per task</strong> — the native expression version should have lower CPU time for the same record count. On 50M rows, this difference can be 30–60 seconds of total CPU time saved.</span></div>
+        <div class="obs-item"><span class="obs-num">5</span><span><strong>The lesson</strong>: even a "simple" UDF like <code>(x: Double) => x * 2</code> breaks codegen for everything downstream, not just its own operation. Replace with <code>col("amount") * 2</code> and the entire pipeline stays in one fused codegen block.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 3 — INVESTIGATION WORKFLOW
+══════════════════════════════════════════════ -->
+<div class="section" id="s3">
+  <div class="section-eyebrow">SECTION 03</div>
+  <div class="section-title">Spark UI Investigation Workflow</div>
+  <p class="body-p">Use this repeatable 7-step workflow for every experiment — both the baseline and the optimized run. Apply it consistently and you'll build muscle memory for Spark debugging.</p>
+
+  <div class="wf-timeline">
+    <div class="wf-row">
+      <div class="wf-dot">1</div>
+      <div class="wf-text">
+        <div class="wf-step-title">SQL Tab → Find the query → Read the physical plan</div>
+        <div class="wf-step-desc">This is always your first move. The SQL tab populates before tasks even start. Identify the plan structure before looking at any runtime metrics. Use <code>.explain("formatted")</code> in code for a cleaner text version alongside the UI view.</div>
+      </div>
+    </div>
+    <div class="wf-row">
+      <div class="wf-dot">2</div>
+      <div class="wf-text">
+        <div class="wf-step-title">Count Exchange nodes</div>
+        <div class="wf-step-desc">Baseline has N exchanges → optimized should have M exchanges where M &lt; N. Record the count. Each Exchange is a stage boundary, a shuffle, and a network round trip. This single number tells you how optimized the plan is.</div>
+      </div>
+    </div>
+    <div class="wf-row">
+      <div class="wf-dot">3</div>
+      <div class="wf-text">
+        <div class="wf-step-title">Identify join strategies</div>
+        <div class="wf-step-desc">Is it SMJ or BHJ? Is there a CartesianProduct (bad — check for missing join conditions)? Is BroadcastExchange on the correct small side? For each join node, ask: could this be broadcast? Should this be bucketed to eliminate the shuffle entirely?</div>
+      </div>
+    </div>
+    <div class="wf-row">
+      <div class="wf-dot">4</div>
+      <div class="wf-text">
+        <div class="wf-step-title">Check scan nodes</div>
+        <div class="wf-step-desc">Are <code>PartitionFilters</code> populated? Are <code>PushedFilters</code> populated? Are only the needed columns listed in the schema (column pruning)? If PartitionFilters is empty and you filtered on a partition column, your filter isn't being pushed down.</div>
+      </div>
+    </div>
+    <div class="wf-row">
+      <div class="wf-dot">5</div>
+      <div class="wf-text">
+        <div class="wf-step-title">Stages tab → Slowest stage → Click into it</div>
+        <div class="wf-step-desc">Sort by Duration descending. Click into the worst stage. Look at the task duration histogram — narrow bell (healthy), right tail (skew). Check Shuffle Read Size per task (sort descending). Is there spill? High GC? These three metrics tell you the root cause of slowness.</div>
+      </div>
+    </div>
+    <div class="wf-row">
+      <div class="wf-dot">6</div>
+      <div class="wf-text">
+        <div class="wf-step-title">Executors tab → Systemic health check</div>
+        <div class="wf-step-desc">Is GC time reasonable across executors? Are shuffle read/write balanced? Are any executors dead or degraded? Task counts should be roughly proportional to core count. Any executor doing 10× more work than others is a skew or scheduler problem.</div>
+      </div>
+    </div>
+    <div class="wf-row">
+      <div class="wf-dot">7</div>
+      <div class="wf-text">
+        <div class="wf-step-title">Compare key metrics between baseline and optimized</div>
+        <div class="wf-step-desc">Record all metrics in your comparison table. Confirm the plan changed as expected (not just that it's faster — structural correctness matters for scaling). A lucky 2× speedup from unchanged plan won't scale. A structurally correct plan with fewer exchanges will.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-top:20px">
+    <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text3);margin-bottom:10px">Key Metrics to Track Every Experiment</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12.5px;color:#7b85a0">
+      <div>• Total job duration (wall time)</div>
+      <div>• Slowest stage duration</div>
+      <div>• Total shuffle write size</div>
+      <div>• Max task duration / Median task duration (skew ratio)</div>
+      <div>• Number of stages</div>
+      <div>• Exchange node count in physical plan</div>
+      <div>• Partition count in post-shuffle stages</div>
+      <div>• Spill (Disk) — should be 0</div>
+    </div>
+    <div class="tip-box" style="margin-top:12px"><span>💡</span> Document your findings in a table for every experiment. Empirical before/after records are far more valuable than intuition. When asked "why is the optimized version faster?", you should be able to answer with specific numbers, not just "because broadcast joins are faster."</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 4 — PROBLEM SIGNALS
+══════════════════════════════════════════════ -->
+<div class="section" id="s4">
+  <div class="section-eyebrow">SECTION 04</div>
+  <div class="section-title">Spark UI Signals That Indicate Problems</div>
+  <p class="body-p">These are the red flags you'll see repeatedly across experiments and in production. Learn to recognize them instantly and know the fix for each.</p>
+
+  <div class="signal-grid">
+    <div class="signal-box">
+      <div class="sb-head" style="background:var(--orange-dim)">
+        <span class="sb-icon">📤</span>
+        <div class="sb-title">Huge Shuffle Write</div>
+      </div>
+      <div class="sb-body">
+        <p><strong>What you see:</strong> Stages tab → Shuffle Write column shows GBs where you expected MBs.</p>
+        <p><strong>Root cause:</strong> No pre-aggregation before shuffle (no partial HashAggregate), or shuffling unnecessarily wide key, or missing broadcast opportunity on a small join side.</p>
+        <div class="sb-fix">Fix: Check SQL tab for HashAggregate (partial) before Exchange — if absent, Spark couldn't pre-agg. Reduce shuffle key columns. Consider broadcasting the smaller side.</div>
+      </div>
+    </div>
+
+    <div class="signal-box">
+      <div class="sb-head" style="background:var(--red-dim)">
+        <span class="sb-icon">🐌</span>
+        <div class="sb-title">One Task Running Much Longer</div>
+      </div>
+      <div class="sb-body">
+        <p><strong>What you see:</strong> Task duration histogram has a long right tail — one or a few tasks take 10–100× longer than median.</p>
+        <p><strong>Root cause:</strong> Data skew. One partition has far more data due to a hot key (Zipf-distributed account_id is the classic LedgerForge case).</p>
+        <div class="sb-fix">Fix: Enable AQE skewJoin optimization. Salt the skewed join key manually. Filter hot keys and process separately with a union.</div>
+      </div>
+    </div>
+
+    <div class="signal-box">
+      <div class="sb-head" style="background:var(--amber-dim)">
+        <span class="sb-icon">🗑️</span>
+        <div class="sb-title">High GC Time</div>
+      </div>
+      <div class="sb-body">
+        <p><strong>What you see:</strong> Stages tab → task GC time &gt; 10% of task time, or Executors tab → GC Time column is high for specific executors.</p>
+        <p><strong>Root cause:</strong> Partitions too large for the executor heap, causing frequent garbage collection. Or large objects captured in task closures.</p>
+        <div class="sb-fix">Fix: Increase partition count to reduce per-partition size. Increase spark.executor.memory. Audit task closures for large captured objects.</div>
+      </div>
+    </div>
+
+    <div class="signal-box">
+      <div class="sb-head" style="background:var(--blue-dim)">
+        <span class="sb-icon">🔬</span>
+        <div class="sb-title">Too Many Tiny Tasks</div>
+      </div>
+      <div class="sb-body">
+        <p><strong>What you see:</strong> Stages tab → 200 tasks, each processing &lt;1MB, completing in 10–50ms. Stage duration dominated by scheduling overhead.</p>
+        <p><strong>Root cause:</strong> <code>spark.sql.shuffle.partitions</code> is too high for your data volume.</p>
+        <div class="sb-fix">Fix: Lower shuffle.partitions to match data. Enable AQE partition coalescing. Use .coalesce(N) after large filters that dramatically reduce volume.</div>
+      </div>
+    </div>
+
+    <div class="signal-box">
+      <div class="sb-head" style="background:var(--teal-dim)">
+        <span class="sb-icon">📡</span>
+        <div class="sb-title">Missing Broadcast Join</div>
+      </div>
+      <div class="sb-body">
+        <p><strong>What you see:</strong> SQL tab shows SortMergeJoin where you expected BroadcastHashJoin for a small dimension table.</p>
+        <p><strong>Root cause:</strong> autoBroadcastJoinThreshold set too low or to -1, or optimizer size estimate is too high (missing ANALYZE TABLE).</p>
+        <div class="sb-fix">Fix: Check autoBroadcastJoinThreshold in Environment tab. Use broadcast() hint explicitly. Run ANALYZE TABLE on the small table. Enable AQE for runtime upgrade.</div>
+      </div>
+    </div>
+
+    <div class="signal-box">
+      <div class="sb-head" style="background:var(--green-dim)">
+        <span class="sb-icon">📁</span>
+        <div class="sb-title">Missing Partition Pruning</div>
+      </div>
+      <div class="sb-body">
+        <p><strong>What you see:</strong> SQL tab → FileScan node → <code>PartitionFilters: []</code> is empty even with a filter on a partition column. Stages tab input size matches full dataset.</p>
+        <p><strong>Root cause:</strong> Filter not pushed to file scan level — UDF wrapping the partition column, expression-based filter, or filter applied after a join.</p>
+        <div class="sb-fix">Fix: Use direct comparisons on partition column (not expressions). Avoid UDFs on partition columns. Ensure filter references the partitioned table directly.</div>
+      </div>
+    </div>
+
+    <div class="signal-box">
+      <div class="sb-head" style="background:var(--purple-dim)">
+        <span class="sb-icon">⚙️</span>
+        <div class="sb-title">Codegen Disabled (UDF Detected)</div>
+      </div>
+      <div class="sb-body">
+        <p><strong>What you see:</strong> SQL tab physical plan — operations outside <code>*(N) WholeStageCodegen</code> blocks. <code>DeserializeToObject</code>, <code>MapElements</code>, <code>SerializeFromObject</code> nodes visible.</p>
+        <p><strong>Root cause:</strong> A UDF or Python operation broke the WholeStageCodegen boundary. Everything outside the codegen block is interpreted, not JIT-compiled.</p>
+        <div class="sb-fix">Fix: Replace UDFs with native Spark functions (when, otherwise, regexp_extract, etc.). For unavoidable UDFs, use pandas_udf (Arrow-based vectorized, 10–100× faster than row-by-row).</div>
+      </div>
+    </div>
+
+    <div class="signal-box">
+      <div class="sb-head" style="background:var(--red-dim)">
+        <span class="sb-icon">💾</span>
+        <div class="sb-title">Disk Spill</div>
+      </div>
+      <div class="sb-body">
+        <p><strong>What you see:</strong> Stages tab → Spill (Disk) column shows non-zero values. Tasks are writing temporary spill files to disk during shuffle.</p>
+        <p><strong>Root cause:</strong> Partition size too large for available executor memory. The in-memory shuffle buffer fills before write can complete.</p>
+        <div class="sb-fix">Fix: Increase spark.sql.shuffle.partitions (more, smaller partitions). Increase spark.executor.memory. Note: with AQE, increase partitions — don't decrease (coalescing won't help spill).</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 5 — DEEP LEARNING CHECKLIST
+══════════════════════════════════════════════ -->
+<div class="section" id="s5">
+  <div class="section-eyebrow">SECTION 05</div>
+  <div class="section-title">Deep Learning Exercise Checklist</div>
+  <p class="body-p">Run this checklist for <strong>every experiment</strong> — both the baseline run and the optimized run. Fill in the values as you go. The act of writing down concrete numbers is what builds intuition that survives beyond the lab session.</p>
+
+  <div class="checklist-grid">
+    <div class="cl-card">
+      <div class="cl-head" style="color:var(--green)">⬜ Before Running</div>
+      <div class="cl-body">
+        <div class="cl-item"><span class="cl-box"></span><span>Spark UI is open at <code>http://localhost:4040</code></span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Jobs, Stages, SQL, and Executors tabs open in separate browser tabs</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>I know what optimization this experiment is testing</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>I have a <strong>prediction</strong>: what should change in the plan and metrics?</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Previous experiment's cache is cleared (<code>.unpersist()</code> called)</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Environment tab checked: shuffle.partitions, AQE setting, broadcast threshold</span></div>
+      </div>
+    </div>
+    <div class="cl-card">
+      <div class="cl-head" style="color:var(--amber)">⚡ During Execution — LIVE</div>
+      <div class="cl-body">
+        <div class="cl-item"><span class="cl-box"></span><span>Jobs tab: total stages in this job = <span class="cl-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Jobs tab: progress bar stalling? At <span class="cl-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>%</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Stages tab: tasks running vs. complete: <span class="cl-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Stages tab: any task running dramatically longer than others?</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Executors tab: GC time visible? Highest executor GC = <span class="cl-blank">&nbsp;&nbsp;&nbsp;&nbsp;</span>%</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Executors tab: shuffle read/write balanced across executors?</span></div>
+      </div>
+    </div>
+    <div class="cl-card">
+      <div class="cl-head" style="color:var(--blue)">🗺️ After Completion — SQL Tab</div>
+      <div class="cl-body">
+        <div class="cl-item"><span class="cl-box"></span><span>Total Exchange nodes in physical plan: <span class="cl-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Join type(s): SMJ / BHJ / SHJ / Cartesian — circle one</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>BroadcastExchange present? On which side: large / small</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>FileScan PartitionFilters populated? Yes / No</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>FileScan PushedFilters populated? Yes / No</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>AdaptiveSparkPlan at root? Yes / No</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>WholeStageCodegen intact (no UDF nodes outside *() blocks)? Yes / No</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Row count estimates vs. actual — close? Yes / No (if No: missing ANALYZE TABLE)</span></div>
+      </div>
+    </div>
+    <div class="cl-card">
+      <div class="cl-head" style="color:var(--orange)">📊 After Completion — Stages Tab</div>
+      <div class="cl-body">
+        <div class="cl-item"><span class="cl-box"></span><span>Slowest stage ID: <span class="cl-blank">&nbsp;&nbsp;&nbsp;</span>, Duration: <span class="cl-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Task count in slowest stage: <span class="cl-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Median task duration: <span class="cl-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>, Max: <span class="cl-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Max/Median ratio (skew): <span class="cl-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> (target &lt;3×)</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Shuffle Write (slowest stage): <span class="cl-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Spill (Disk): <span class="cl-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> (should be 0)</span></div>
+        <div class="cl-item"><span class="cl-box"></span><span>Task histogram shape: narrow bell / right-tailed — circle one</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison table -->
+  <div class="metric-table-wrap">
+    <div class="mt-title">Experiment Comparison Table — Fill In Both Runs</div>
+    <table class="comp-table">
+      <tr>
+        <th>Metric</th>
+        <th><span class="badge-baseline">BASELINE</span></th>
+        <th><span class="badge-opt">OPTIMIZED</span></th>
+        <th>Change / Notes</th>
+      </tr>
+      <tr><td>Total job duration</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">____% faster</td></tr>
+      <tr><td>Number of stages</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">fewer = less shuffle</td></tr>
+      <tr><td>Exchange node count</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">each removed = one shuffle saved</td></tr>
+      <tr><td>Join strategy</td><td style="color:var(--text3)">SMJ / BHJ</td><td style="color:var(--text3)">SMJ / BHJ</td><td style="color:var(--text3)">SMJ→BHJ = major win</td></tr>
+      <tr><td>Slowest stage duration</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">____% faster</td></tr>
+      <tr><td>Total shuffle write</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">less = less I/O</td></tr>
+      <tr><td>Max/Median task ratio</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">target &lt;3×</td></tr>
+      <tr><td>Post-shuffle partition count</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">AQE changes this dynamically</td></tr>
+      <tr><td>Spill (Disk)</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">________</td><td style="color:var(--text3)">should be 0 in both</td></tr>
+      <tr><td>GC time (max executor)</td><td style="color:var(--text3)">_______ %</td><td style="color:var(--text3)">_______ %</td><td style="color:var(--text3)">target &lt;5%</td></tr>
+    </table>
+  </div>
+
+  <!-- Reflection questions -->
+  <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text3);margin:24px 0 12px">Reflection Questions — Write Answers After Each Experiment</div>
+  <div class="reflect-grid">
+    <div class="reflect-card">
+      <div class="reflect-num">Q1</div>
+      <div class="reflect-q">What did the optimized plan <strong>eliminate</strong> that the baseline had? (Exchanges? Sorts? Full scans? Window nodes?)</div>
+    </div>
+    <div class="reflect-card">
+      <div class="reflect-num">Q2</div>
+      <div class="reflect-q">What was the <strong>single biggest contributor</strong> to the speedup? Can you quantify it in seconds or percentage?</div>
+    </div>
+    <div class="reflect-card">
+      <div class="reflect-num">Q3</div>
+      <div class="reflect-q">Did the actual plan <strong>match your prediction</strong>? If not — what surprised you and why did Spark choose differently?</div>
+    </div>
+    <div class="reflect-card">
+      <div class="reflect-num">Q4</div>
+      <div class="reflect-q">What <strong>configuration setting</strong> controlled the key behavior you observed? What is its default value vs. optimal value for this dataset?</div>
+    </div>
+    <div class="reflect-card">
+      <div class="reflect-num">Q5</div>
+      <div class="reflect-q">How would you apply this optimization in a <strong>production pipeline</strong>? What would you monitor after deploying it?</div>
+    </div>
+    <div class="reflect-card">
+      <div class="reflect-num">Q6</div>
+      <div class="reflect-q">What could make this optimization <strong>fail at larger scale</strong>? What assumption does it rely on that might break at 10× data volume?</div>
+    </div>
+  </div>
+
+  <div style="margin-top:32px;background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(20,184,166,0.04));border:1px solid rgba(16,185,129,0.2);border-radius:14px;padding:24px 26px">
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:10px">The Goal of This Playbook</div>
+    <p style="font-size:14px;color:#7b85a0;line-height:1.8;margin-bottom:8px">After completing all 8 experiments with this playbook, you should be able to look at any Spark UI screenshot and immediately articulate: what the plan is doing, what's slow and why, what optimization would help, and how to verify it worked.</p>
+    <p style="font-size:14px;color:#7b85a0;line-height:1.8">That's the difference between knowing Spark and <em>understanding</em> Spark. The UI is your instrument panel — this playbook teaches you to read it fluently.</p>
+    <div style="margin-top:14px;font-family:var(--mono);font-size:11px;color:rgba(16,185,129,0.7)">→ Refer to sparkuimanual.html for concept definitions and theory behind each observation.</div>
+  </div>
+</div>
+
+</div><!-- end page -->
+
+<script>
+  function toggleExp(card) {
+    card.classList.toggle('open');
+  }
+
+  // Nav active state
+  const navItems = document.querySelectorAll('.snav-item');
+  window.addEventListener('scroll', () => {
+    const sections = document.querySelectorAll('.section');
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 100) current = s.id;
+    });
+    navItems.forEach(n => {
+      const href = n.getAttribute('href')?.replace('#', '');
+      n.classList.toggle('active', href === current);
+    });
+  });
+
+  navItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.querySelector(item.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+</body>
+</html>

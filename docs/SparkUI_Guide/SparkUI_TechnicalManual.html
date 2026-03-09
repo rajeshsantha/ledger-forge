@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Spark UI — Complete Technical Manual</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Clash+Display:wght@500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #060810;
+  --bg2: #0b0e1a;
+  --surface: #0f1220;
+  --surface2: #141828;
+  --border: #1e2438;
+  --border2: #252d45;
+  --blue: #4f8ef7;
+  --blue-dim: rgba(79,142,247,0.12);
+  --blue-glow: rgba(79,142,247,0.06);
+  --cyan: #22d4e8;
+  --cyan-dim: rgba(34,212,232,0.1);
+  --orange: #f97316;
+  --orange-dim: rgba(249,115,22,0.1);
+  --green: #34d399;
+  --green-dim: rgba(52,211,153,0.1);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,0.1);
+  --yellow: #fbbf24;
+  --yellow-dim: rgba(251,191,36,0.1);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.1);
+  --text: #d8ddf0;
+  --text2: #8892aa;
+  --text3: #525c78;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14.5px;
+  line-height: 1.75;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+aside {
+  width: 270px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+
+aside::-webkit-scrollbar { width: 3px; }
+aside::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.sidebar-head {
+  padding: 28px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(79,142,247,0.05) 0%, transparent 100%);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.logo-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--cyan) 100%);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+
+.logo-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #e0e7ff;
+  letter-spacing: 0.04em;
+}
+
+.sidebar-subtitle {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-top: 4px;
+}
+
+.nav-section {
+  padding: 14px 0 6px;
+}
+
+.nav-section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text3);
+  padding: 0 20px;
+  margin-bottom: 4px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 20px;
+  font-size: 12.5px;
+  color: var(--text2);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: #c5cfff;
+  background: var(--blue-dim);
+  border-left-color: var(--blue);
+}
+
+.nav-link-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--border2);
+  flex-shrink: 0;
+}
+
+.nav-link.active .nav-link-dot { background: var(--blue); }
+
+/* ── MAIN ── */
+main {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  padding: 56px 60px 48px;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(79,142,247,0.04) 0%, transparent 60%);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(79,142,247,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,142,247,0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--blue);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--blue-dim);
+  border: 1px solid rgba(79,142,247,0.25);
+  border-radius: 100px;
+  padding: 4px 14px;
+  margin-bottom: 18px;
+}
+
+.hero-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(28px, 4vw, 52px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  color: #fff;
+  margin-bottom: 14px;
+}
+
+.hero-title .hl {
+  background: linear-gradient(90deg, var(--blue) 0%, var(--cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.hero-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.meta-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* ── CONTENT ── */
+.content {
+  padding: 48px 60px 80px;
+  max-width: 960px;
+}
+
+/* ── SECTION ── */
+.doc-section {
+  margin-bottom: 68px;
+  scroll-margin-top: 24px;
+}
+
+.section-number {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--blue);
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.section-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.8px;
+  color: #fff;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 14px;
+}
+
+.section-desc {
+  color: var(--text2);
+  font-size: 13.5px;
+  margin-bottom: 24px;
+  margin-top: 8px;
+}
+
+/* ── SUBSECTION ── */
+.sub-section {
+  margin-bottom: 36px;
+}
+
+.sub-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: #c5cfff;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sub-title::before {
+  content: '';
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--blue);
+  flex-shrink: 0;
+}
+
+.body-text {
+  color: #b0bbd4;
+  font-size: 14px;
+  line-height: 1.8;
+  margin-bottom: 14px;
+}
+
+/* ── EXECUTION PIPELINE ── */
+.pipeline-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin: 18px 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+}
+
+.pipe-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 6px 0;
+}
+
+.pipe-step {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  padding: 7px 14px;
+  min-width: 230px;
+  color: #c5cfff;
+  font-size: 11.5px;
+}
+
+.pipe-step.highlighted { border-color: rgba(79,142,247,0.4); background: var(--blue-dim); color: #93c5fd; }
+.pipe-step.action { border-color: rgba(34,212,232,0.3); background: var(--cyan-dim); color: #67e8f9; }
+
+.pipe-arrow { color: var(--text3); padding: 0 12px; font-size: 14px; }
+
+.pipe-annotation {
+  color: var(--text3);
+  font-size: 10.5px;
+  padding-left: 14px;
+  font-style: italic;
+}
+
+/* ── STAGE DIAGRAM ── */
+.stage-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 18px 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+}
+
+.stage-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: #a0b0cc;
+  position: relative;
+}
+
+.stage-block + .stage-shuffle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  color: var(--orange);
+  font-size: 10.5px;
+}
+
+/* ── CODE BLOCK ── */
+pre {
+  background: #07090f;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--blue);
+  border-radius: 8px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: #8899cc;
+  line-height: 1.65;
+  margin: 12px 0;
+}
+
+pre .kw { color: #93c5fd; }
+pre .fn { color: #6ee7b7; }
+pre .str { color: #fcd34d; }
+pre .cm { color: #374151; }
+pre .num { color: #f9a8d4; }
+pre .node { color: var(--cyan); }
+pre .arrow { color: var(--text3); }
+pre .label { color: #fde68a; }
+
+code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  background: rgba(79,142,247,0.1);
+  border: 1px solid rgba(79,142,247,0.2);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: #93c5fd;
+}
+
+/* ── TABLES ── */
+.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 14px 0;
+}
+
+.ref-table th {
+  background: var(--surface2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  padding: 9px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.ref-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  color: #b0bbd4;
+  vertical-align: top;
+}
+
+.ref-table td:first-child {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  color: #93c5fd;
+  white-space: nowrap;
+}
+
+.ref-table tr:last-child td { border-bottom: none; }
+.ref-table tr:hover td { background: var(--blue-glow); }
+
+/* ── NODE CARDS ── */
+.node-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+@media (max-width: 900px) { .node-grid { grid-template-columns: 1fr; } }
+
+.node-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  transition: border-color 0.2s;
+}
+
+.node-card:hover { border-color: var(--border2); }
+
+.node-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.node-type-badge {
+  font-size: 9px;
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-weight: 400;
+}
+
+.node-desc { font-size: 12.5px; color: #8892aa; line-height: 1.6; }
+
+/* ── JOIN DECISION TREE ── */
+.decision-tree {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 24px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  margin: 16px 0;
+}
+
+.dt-row { display: flex; align-items: flex-start; gap: 10px; margin: 7px 0; }
+.dt-indent { padding-left: 20px; }
+.dt-q { color: #fde68a; }
+.dt-y { color: var(--green); }
+.dt-n { color: var(--red); }
+.dt-result { color: var(--cyan); font-weight: 600; }
+.dt-arrow { color: var(--text3); }
+
+/* ── JOIN COMPARISON CARDS ── */
+.join-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+
+@media (max-width: 800px) { .join-cards { grid-template-columns: 1fr; } }
+
+.join-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.join-card-head {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.join-card-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #e0e7ff;
+}
+
+.join-speed {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
+.join-card-body {
+  padding: 12px 14px;
+  font-size: 12.5px;
+  color: #8892aa;
+  line-height: 1.65;
+}
+
+/* ── SIGNAL CARDS ── */
+.signal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.signal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.signal-icon {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.signal-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e0e7ff;
+}
+
+.signal-body {
+  padding: 14px 18px;
+  font-size: 13px;
+  color: #8892aa;
+  line-height: 1.7;
+}
+
+.signal-body p { margin-bottom: 8px; }
+.signal-body p:last-child { margin-bottom: 0; }
+
+/* ── METRICS HEALTH TABLE ── */
+.health-row-green td:nth-child(3) { color: var(--green); }
+.health-row-warn td:nth-child(3) { color: var(--yellow); }
+.health-row-bad td:nth-child(3) { color: var(--red); }
+
+/* ── AQE CONFIGS ── */
+.config-block {
+  background: #06070f;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--cyan);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  color: #7ba3c8;
+  margin: 10px 0;
+}
+
+.config-key { color: var(--cyan); }
+.config-val { color: var(--yellow); }
+
+/* ── CHEAT SHEET ── */
+.cheat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 16px 0;
+}
+
+@media (max-width: 800px) { .cheat-grid { grid-template-columns: 1fr; } }
+
+.cheat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.cheat-head {
+  background: var(--surface2);
+  padding: 10px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  border-bottom: 1px solid var(--border);
+}
+
+.cheat-body {
+  padding: 12px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: #7890b8;
+  line-height: 1.7;
+}
+
+.cheat-body .arrow { color: var(--text3); }
+.cheat-body .good { color: var(--green); }
+.cheat-body .bad { color: var(--red); }
+.cheat-body .neutral { color: var(--yellow); }
+
+/* ── WORKFLOW STEPS ── */
+.workflow-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 16px 0;
+}
+
+.wf-step {
+  display: flex;
+  gap: 16px;
+  position: relative;
+}
+
+.wf-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 36px;
+  bottom: -12px;
+  width: 1px;
+  background: var(--border);
+}
+
+.wf-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--blue-dim);
+  border: 1px solid rgba(79,142,247,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--blue);
+  flex-shrink: 0;
+}
+
+.wf-content {
+  flex: 1;
+  padding-bottom: 20px;
+}
+
+.wf-title {
+  font-weight: 600;
+  color: #c5cfff;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.wf-desc {
+  font-size: 13px;
+  color: #8892aa;
+  line-height: 1.6;
+}
+
+/* ── INFO / WARN BOXES ── */
+.info-box {
+  background: var(--blue-dim);
+  border: 1px solid rgba(79,142,247,0.2);
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin: 12px 0;
+  font-size: 13px;
+  color: #93c5fd;
+  display: flex;
+  gap: 10px;
+}
+
+.warn-box {
+  background: var(--orange-dim);
+  border: 1px solid rgba(249,115,22,0.2);
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin: 12px 0;
+  font-size: 13px;
+  color: #fdba74;
+  display: flex;
+  gap: 10px;
+}
+
+.danger-box {
+  background: var(--red-dim);
+  border: 1px solid rgba(248,113,113,0.2);
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin: 12px 0;
+  font-size: 13px;
+  color: #fca5a5;
+  display: flex;
+  gap: 10px;
+}
+
+/* ── SHUFFLE INTERNALS DIAGRAM ── */
+.shuffle-diagram {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 16px 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+}
+
+.shuffle-columns {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.shuffle-side-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+
+.shuffle-task {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  color: #8892aa;
+  font-size: 11px;
+}
+
+.shuffle-middle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 4px;
+  color: var(--orange);
+  gap: 4px;
+  font-size: 18px;
+}
+
+.shuffle-label-center { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  aside { display: none; }
+  .content { padding: 24px 20px 60px; }
+  .hero { padding: 36px 20px 30px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<aside>
+  <div class="sidebar-head">
+    <div class="sidebar-logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">Spark UI Manual</div>
+    </div>
+    <div class="sidebar-subtitle">Apache Spark 3.x · Complete Reference</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Foundations</div>
+    <a class="nav-link active" href="#s1"><span class="nav-link-dot"></span>Execution Model</a>
+    <a class="nav-link" href="#s2"><span class="nav-link-dot"></span>Complete Tab Tour</a>
+    <a class="nav-link" href="#s3"><span class="nav-link-dot"></span>Reading the DAG</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Internals</div>
+    <a class="nav-link" href="#s4"><span class="nav-link-dot"></span>Exchange & Shuffle</a>
+    <a class="nav-link" href="#s5"><span class="nav-link-dot"></span>Join Strategies</a>
+    <a class="nav-link" href="#s6"><span class="nav-link-dot"></span>Stage-Level Debug</a>
+    <a class="nav-link" href="#s7"><span class="nav-link-dot"></span>Adaptive Query Exec</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Practice</div>
+    <a class="nav-link" href="#s8"><span class="nav-link-dot"></span>Debugging Playbook</a>
+    <a class="nav-link" href="#s9"><span class="nav-link-dot"></span>Optimization Cheatsheet</a>
+    <a class="nav-link" href="#s10"><span class="nav-link-dot"></span>Senior Engineer Flow</a>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<main>
+  <div class="hero">
+    <div class="hero-eyebrow">⚡ Apache Spark 3.x Reference</div>
+    <div class="hero-title">Spark UI<br><span class="hl">Complete Technical Manual</span></div>
+    <p style="color:var(--text2);font-size:14px;max-width:560px;margin-top:10px">The definitive reference for deeply interpreting every metric, graph, and physical plan node in the Spark UI — from execution internals to senior-level debugging workflows.</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item"><span class="meta-dot" style="background:var(--blue)"></span> 10 Sections</div>
+      <div class="hero-meta-item"><span class="meta-dot" style="background:var(--cyan)"></span> All UI Tabs Covered</div>
+      <div class="hero-meta-item"><span class="meta-dot" style="background:var(--green)"></span> Every Plan Node Explained</div>
+      <div class="hero-meta-item"><span class="meta-dot" style="background:var(--orange)"></span> Production Debugging Guide</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<!-- ═══════════════════════════════ S1 ═══════════════════════════════ -->
+<div class="doc-section" id="s1">
+  <div class="section-number">SECTION 01</div>
+  <div class="section-title">Spark Execution Model</div>
+  <div class="section-desc">The mental model behind every metric you'll ever see in Spark UI. Without this foundation, every number is noise.</div>
+
+  <div class="sub-section">
+    <div class="sub-title">1.1 The Transformation Pipeline</div>
+    <p class="body-text">When you write DataFrame code, Spark does not execute it immediately. It builds a tree of transformations, passes it through multiple optimization phases, then executes it lazily when an action is called. Understanding this pipeline is what separates guessing from knowing.</p>
+    <div class="pipeline-box">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text3);margin-bottom:14px">TRANSFORMATION PIPELINE — YOUR CODE TO EXECUTION</div>
+      <div class="pipe-row"><span class="pipe-step" style="color:#c5cfff">Your DataFrame Code</span><span class="pipe-annotation">← What you write</span></div>
+      <div class="pipe-row"><span style="color:var(--text3);padding:2px 14px">↓</span></div>
+      <div class="pipe-row"><span class="pipe-step">Unresolved Logical Plan</span><span class="pipe-annotation">← Parsed AST — column names not yet validated</span></div>
+      <div class="pipe-row"><span style="color:var(--text3);padding:2px 14px">↓ Analyzer — resolves names against catalog</span></div>
+      <div class="pipe-row"><span class="pipe-step">Resolved Logical Plan</span><span class="pipe-annotation">← Column types resolved, relations checked</span></div>
+      <div class="pipe-row"><span style="color:var(--text3);padding:2px 14px">↓ Catalyst Optimizer — rule-based + cost-based rewrites</span></div>
+      <div class="pipe-row"><span class="pipe-step highlighted">Optimized Logical Plan</span><span class="pipe-annotation">← Predicates pushed, projections pruned, joins reordered</span></div>
+      <div class="pipe-row"><span style="color:var(--text3);padding:2px 14px">↓ Planner → Cost Model → selects cheapest physical plan</span></div>
+      <div class="pipe-row"><span class="pipe-step highlighted">Selected Physical Plan</span><span class="pipe-annotation">← The plan Spark will actually execute</span></div>
+      <div class="pipe-row"><span style="color:var(--text3);padding:2px 14px">↓ WholeStageCodegen — JIT-compiles hot paths</span></div>
+      <div class="pipe-row"><span class="pipe-step action">Code-Generated Physical Plan</span><span class="pipe-annotation">← Fused bytecode — this is what runs</span></div>
+      <div class="pipe-row"><span style="color:var(--text3);padding:2px 14px">↓ Action triggers execution → DAG: Job → Stages → Tasks</span></div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">1.2 Key Concepts</div>
+    <div class="ref-table-wrapper">
+      <table class="ref-table">
+        <tr><th>Concept</th><th>Definition</th><th>What You See in UI</th></tr>
+        <tr><td>Job</td><td>Created every time Spark executes an action (<code>.collect()</code>, <code>.count()</code>, <code>.write</code>, <code>.show()</code>). One action = one Job.</td><td>A row in the Jobs tab</td></tr>
+        <tr><td>Stage</td><td>A set of tasks that can run in parallel without a shuffle. Stage boundaries are created wherever an <code>Exchange</code> node appears in the physical plan.</td><td>A stage in the Stages tab; a color block in the DAG</td></tr>
+        <tr><td>Task</td><td>The smallest unit of execution. One task processes exactly one partition of data. Task count = partition count for that stage.</td><td>Each bar in the task duration histogram</td></tr>
+        <tr><td>Partition</td><td>A logical chunk of data. After a shuffle, count is controlled by <code>spark.sql.shuffle.partitions</code> (default 200) unless AQE coalesces them.</td><td>Number of tasks in a stage</td></tr>
+        <tr><td>Shuffle</td><td>Redistributing data across executors by key. Involves shuffle write (map-side, to local disk) and shuffle read (reduce-side, fetch from all map tasks). Expensive.</td><td>Shuffle Read/Write columns in Stages tab; <code>Exchange</code> node in SQL tab</td></tr>
+        <tr><td>DAG</td><td>Directed Acyclic Graph of stage dependencies. Shows which stages must complete before others can start.</td><td>Visual graph in the SQL tab; arrows in Stages tab</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">1.3 Catalyst Optimizer</div>
+    <p class="body-text">Catalyst is Spark's query optimization framework. It applies transformations in two passes before execution begins:</p>
+    <div class="node-grid">
+      <div class="node-card">
+        <div class="node-name" style="color:var(--blue)">Rule-Based Optimization (RBO)</div>
+        <div class="node-desc">Always applied regardless of statistics. Includes: predicate pushdown (filters close to scan), projection pruning (read only referenced columns), constant folding (<code>1+1</code> → <code>2</code>), and boolean simplification. These are deterministic improvements.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-name" style="color:var(--cyan)">Cost-Based Optimization (CBO)</div>
+        <div class="node-desc">Applied only if table statistics are available via <code>ANALYZE TABLE</code>. Enables join reordering (smaller table on build side) and join strategy selection based on estimated row counts and data sizes.</div>
+      </div>
+    </div>
+    <div class="info-box"><span>💡</span> Inspect all four plan levels by calling <code>.explain(true)</code> or <code>.explain("formatted")</code> on any DataFrame. The SQL tab shows the final executed plan interactively.</div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">1.4 Adaptive Query Execution (AQE)</div>
+    <p class="body-text">AQE is Spark's runtime optimizer (Spark 3.0+, enabled by default in 3.2+). Unlike Catalyst, which optimizes before execution, AQE re-optimizes the plan <em>between shuffle stages</em> based on actual runtime statistics — not estimates.</p>
+    <div class="node-grid">
+      <div class="node-card" style="border-color:rgba(34,212,232,0.2)">
+        <div class="node-name" style="color:var(--cyan)">🔀 Partition Coalescing</div>
+        <div class="node-desc">Merges tiny post-shuffle partitions into larger ones, reducing scheduling overhead from empty/small tasks.</div>
+      </div>
+      <div class="node-card" style="border-color:rgba(52,211,153,0.2)">
+        <div class="node-name" style="color:var(--green)">⚖️ Skew Join Optimization</div>
+        <div class="node-desc">Detects skewed partitions at runtime and splits them into multiple sub-tasks, eliminating stragglers without manual salting.</div>
+      </div>
+      <div class="node-card" style="border-color:rgba(79,142,247,0.2)">
+        <div class="node-name" style="color:var(--blue)">📡 Dynamic Broadcast Join</div>
+        <div class="node-desc">Upgrades a SortMergeJoin to BroadcastHashJoin at runtime if the actual build side is smaller than the broadcast threshold — even if the estimate was wrong.</div>
+      </div>
+      <div class="node-card" style="border-color:rgba(167,139,250,0.2)">
+        <div class="node-name" style="color:var(--purple)">🔍 In UI: AdaptiveSparkPlan</div>
+        <div class="node-desc">When AQE is active, the SQL tab wraps the entire plan in <code>AdaptiveSparkPlan</code>. Always read the <em>final executed plan</em> — the initial plan may not reflect what Spark actually did.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ S2 ═══════════════════════════════ -->
+<div class="doc-section" id="s2">
+  <div class="section-number">SECTION 02</div>
+  <div class="section-title">Complete Tour of Spark UI Tabs</div>
+  <div class="section-desc">Every tab, every column, every metric — and what it actually means for your job's health.</div>
+
+  <div class="sub-section">
+    <div class="sub-title">2.1 Jobs Tab</div>
+    <p class="body-text">Every action that has triggered a Job. Use this as your entry point to understand the structure of execution.</p>
+    <table class="ref-table">
+      <tr><th>Column</th><th>Meaning</th><th>What to Watch For</th></tr>
+      <tr><td>Job Id</td><td>Auto-incrementing integer. Higher = later in time.</td><td>Gaps in IDs may indicate cached queries that didn't need new jobs</td></tr>
+      <tr><td>Description</td><td>The action call site: file name + line number. Click to see the job's DAG.</td><td>Confirm you're watching the right job (baseline vs. optimized)</td></tr>
+      <tr><td>Duration</td><td>Elapsed wall time — not CPU time. Includes scheduling and GC.</td><td>Compare between baseline and optimized runs</td></tr>
+      <tr><td>Stages: Succeeded/Total</td><td><code>2/4</code> = 4 stages total, 2 complete. The other 2 are pending or active.</td><td>Lower total = fewer shuffles = better optimization</td></tr>
+      <tr><td>Tasks: Succeeded/Total</td><td>Fine-grained progress. Blue bar fills as tasks complete.</td><td>Bar stalling at 90% for a long time = straggler tasks (likely skew)</td></tr>
+    </table>
+    <div class="warn-box"><span>⚠️</span> Multiple completed jobs with very similar descriptions often indicate a missing <code>.cache()</code> — the same expensive DAG is being recomputed for every action. Compare job descriptions to spot this pattern.</div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">2.2 Stages Tab</div>
+    <p class="body-text">Every stage across all jobs. Your primary tool for finding slow stages and confirming skew or spill.</p>
+    <table class="ref-table">
+      <tr><th>Column</th><th>Meaning</th><th>Healthy vs. Problem</th></tr>
+      <tr><td>Duration</td><td>Wall time from first task to last task finishing.</td><td>Sort descending to find your bottleneck stage instantly</td></tr>
+      <tr><td>Tasks: Succeeded/Total</td><td>Mismatches indicate retries — tasks failing and being re-run.</td><td>Any retry count &gt; 0 is worth investigating</td></tr>
+      <tr><td>Input</td><td>Data read from disk/HDFS/S3 in this stage.</td><td>Unexpectedly large = partition pruning isn't working</td></tr>
+      <tr><td>Shuffle Read</td><td>Data fetched over the network from prior stages.</td><td>Imbalance across tasks in stage detail = skew</td></tr>
+      <tr><td>Shuffle Write</td><td>Data written to local disk for next stages to fetch.</td><td>Larger than expected = missing partial aggregation</td></tr>
+      <tr><td>Spill (Memory)</td><td>Data that had to move from JVM heap to off-heap before spilling.</td><td>Any value &gt; 0 is a warning; consistent spill = OOM risk</td></tr>
+      <tr><td>Spill (Disk)</td><td>Data physically written to temp disk files during a shuffle/sort.</td><td>Should be 0 in a well-tuned job</td></tr>
+    </table>
+    <div class="info-box"><span>💡</span> Click into any stage to see the <strong>task duration histogram</strong>. A healthy stage shows a narrow bell curve. A skewed stage shows a long right tail — a few tasks taking 10–100× longer than the median.</div>
+    <p class="body-text" style="margin-top:10px">Inside a stage, sort tasks by <strong>Shuffle Read Size</strong> descending. If one task reads orders of magnitude more than others, you've confirmed a hot key. Also check <strong>Locality Level</strong>: <code>PROCESS_LOCAL</code> is fastest (in-process memory); <code>ANY</code> means cross-rack network fetch — a scheduler placement problem.</p>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">2.3 SQL / DataFrame Tab</div>
+    <p class="body-text">The most important tab for performance debugging. Every DataFrame query plan is rendered as an interactive DAG with per-node row counts, timing, and data sizes. This is where you find exchange counts, join strategies, and filter pushdown status.</p>
+    <div class="node-grid">
+      <div class="node-card" style="border-color:rgba(248,113,113,0.2)">
+        <div class="node-name" style="color:var(--red)">What to Find: Exchange Nodes</div>
+        <div class="node-desc"><code>Exchange</code> nodes = shuffles. Count them. Each one is a stage boundary and a network round trip. Your primary optimization target.</div>
+      </div>
+      <div class="node-card" style="border-color:rgba(79,142,247,0.2)">
+        <div class="node-name" style="color:var(--blue)">What to Find: BroadcastExchange</div>
+        <div class="node-desc">Confirms a broadcast join. Should appear on the small side only. If it appears on a large table, you have a driver OOM risk.</div>
+      </div>
+      <div class="node-card" style="border-color:rgba(52,211,153,0.2)">
+        <div class="node-name" style="color:var(--green)">What to Find: FileScan Filters</div>
+        <div class="node-desc"><code>PartitionFilters</code> = directory-level partition pruning. <code>PushedFilters</code> = row-level predicate pushdown inside the file reader. Both should be populated for efficient scans.</div>
+      </div>
+      <div class="node-card" style="border-color:rgba(167,139,250,0.2)">
+        <div class="node-name" style="color:var(--purple)">What to Find: Row Count Anomalies</div>
+        <div class="node-desc">A row count explosion between nodes = unexpected cross join or missing filter. A row count collapse = heavy filtering — confirm it happens early, close to the Scan node.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">2.4 Storage Tab</div>
+    <p class="body-text">All DataFrames and RDDs that have been cached with <code>.cache()</code> or <code>.persist()</code>.</p>
+    <table class="ref-table">
+      <tr><th>Column</th><th>Meaning</th><th>What It Tells You</th></tr>
+      <tr><td>Storage Level</td><td>MEMORY_ONLY, MEMORY_AND_DISK, DISK_ONLY, etc.</td><td>Determines where data lives and whether spill is automatic</td></tr>
+      <tr><td>Fraction Cached</td><td>Percentage of total partitions currently materialized.</td><td>Must be 1.0 (100%) for cache to be fully effective. &lt;1.0 = eviction happening</td></tr>
+      <tr><td>Size in Memory</td><td>Bytes held in JVM heap.</td><td>Compare MEMORY_ONLY vs DISK_ONLY to measure serialization overhead</td></tr>
+      <tr><td>Size on Disk</td><td>Bytes spilled or persisted to disk.</td><td>DISK_ONLY shows 0 in Memory — slower reads, but no eviction risk</td></tr>
+    </table>
+    <div class="warn-box"><span>⚠️</span> Forgetting to call <code>.unpersist()</code> between experiments or pipeline stages leaves stale DataFrames consuming executor memory across jobs. Check the Storage tab regularly during long-running sessions.</div>
+    <div class="info-box"><span>💡</span> If a cached DataFrame shows 0 partitions, the cache hasn't been materialized yet — lazy evaluation means the first action on it will populate the cache. Call <code>.count()</code> to force materialization and confirm.</div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">2.5 Executors Tab</div>
+    <p class="body-text">Resource usage and task statistics broken down per executor process. Your window into cluster health and skew manifestation.</p>
+    <table class="ref-table">
+      <tr><th>Column</th><th>Meaning</th><th>Red Flag Threshold</th></tr>
+      <tr><td>State</td><td>Active / Dead. Dead executors were lost (OOM, timeout, eviction).</td><td>Any Dead executor mid-job</td></tr>
+      <tr><td>Task Time (GC Time)</td><td>Total CPU time in tasks, with GC portion shown in parentheses.</td><td>GC &gt; 10% of Task Time</td></tr>
+      <tr><td>Storage Memory</td><td>Used / Total memory for caching on this executor.</td><td>Near 100% = evictions likely</td></tr>
+      <tr><td>Failed Tasks</td><td>Tasks that failed and were retried on this executor.</td><td>Any value &gt; 0 — check executor logs</td></tr>
+      <tr><td>Shuffle Read / Write</td><td>Network I/O for shuffles per executor.</td><td>Large imbalance across executors = data skew</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">2.6 Environment Tab</div>
+    <p class="body-text">JVM properties, Spark configuration, classpath entries, and system properties. Always verify your configs are what you think they are — operator-level configs can override application settings silently.</p>
+    <div class="config-block">
+      <div><span class="config-key">spark.sql.shuffle.partitions</span> = <span class="config-val">200</span> &nbsp;&nbsp;<span style="color:var(--text3)">← verify this is your tuned value, not default</span></div>
+      <div><span class="config-key">spark.sql.adaptive.enabled</span> = <span class="config-val">true</span></div>
+      <div><span class="config-key">spark.sql.autoBroadcastJoinThreshold</span> = <span class="config-val">10485760</span> &nbsp;&nbsp;<span style="color:var(--text3)">← if -1, broadcasts are disabled</span></div>
+      <div><span class="config-key">spark.executor.memory</span> = <span class="config-val">4g</span></div>
+      <div><span class="config-key">spark.executor.memoryOverhead</span> = <span class="config-val">512m</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ S3 ═══════════════════════════════ -->
+<div class="doc-section" id="s3">
+  <div class="section-number">SECTION 03</div>
+  <div class="section-title">How to Read the DAG</div>
+  <div class="section-desc">The DAG in the SQL tab is read bottom to top — data flows upward. Each node represents one physical operation.</div>
+
+  <div class="sub-section">
+    <div class="pipeline-box">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text3);margin-bottom:14px">EXAMPLE DAG — AGGREGATION PIPELINE (READ BOTTOM TO TOP)</div>
+      <div class="pipe-row"><span class="pipe-step action" style="min-width:180px">Result to Driver</span><span class="pipe-annotation">← Collected by action</span></div>
+      <div class="pipe-row"><span style="color:var(--text3);padding:2px 14px">↑</span></div>
+      <div class="pipe-row"><span class="pipe-step highlighted" style="min-width:180px">HashAggregate (Final)</span><span class="pipe-annotation">← Merges partial aggregates after shuffle</span></div>
+      <div class="pipe-row"><span style="color:var(--text3);padding:2px 14px">↑</span></div>
+      <div class="pipe-row"><span class="pipe-step" style="min-width:180px;border-color:rgba(249,115,22,0.4);color:#fb923c">Exchange hashpartitioning</span><span class="pipe-annotation">← Stage boundary — shuffle happens here</span></div>
+      <div class="pipe-row"><span style="color:var(--text3);padding:2px 14px">↑</span></div>
+      <div class="pipe-row"><span class="pipe-step highlighted" style="min-width:180px">HashAggregate (Partial)</span><span class="pipe-annotation">← Pre-shuffle partial agg reduces shuffle volume</span></div>
+      <div class="pipe-row"><span style="color:var(--text3);padding:2px 14px">↑</span></div>
+      <div class="pipe-row"><span class="pipe-step" style="min-width:180px">Filter</span><span class="pipe-annotation">← Applied after scan if not pushed down</span></div>
+      <div class="pipe-row"><span style="color:var(--text3);padding:2px 14px">↑</span></div>
+      <div class="pipe-row"><span class="pipe-step" style="min-width:180px">FileScan (Parquet)</span><span class="pipe-annotation">← Entry point — look for PartitionFilters &amp; PushedFilters here</span></div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">3.1 Node Reference — Every Physical Plan Node</div>
+    <div class="node-grid">
+      <div class="node-card">
+        <div class="node-name"><span style="color:var(--green)">FileScan / Scan</span> <span class="node-type-badge" style="background:rgba(52,211,153,0.1);color:var(--green)">I/O</span></div>
+        <div class="node-desc">Reads data from external storage. The most important fields are <strong>PartitionFilters</strong> (directory-level, for partitioned datasets — huge speedup) and <strong>PushedFilters</strong> (row-level, inside the file reader). If your WHERE clause filter doesn't appear in PushedFilters, data is being read in full then filtered — very wasteful.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-name"><span style="color:var(--orange)">Exchange</span> <span class="node-type-badge" style="background:rgba(249,115,22,0.1);color:var(--orange)">SHUFFLE</span></div>
+        <div class="node-desc">The most important node to minimize. Three types: <code>hashpartitioning(key, N)</code> for joins/groupBy; <code>SinglePartition</code> for orderBy on large data (dangerous — collects everything to one task); <code>BroadcastExchange</code> for small-table broadcast (desirable).</div>
+      </div>
+      <div class="node-card">
+        <div class="node-name"><span style="color:var(--blue)">HashAggregate</span> <span class="node-type-badge" style="background:rgba(79,142,247,0.1);color:var(--blue)">COMPUTE</span></div>
+        <div class="node-desc">Two-phase aggregation. The pre-shuffle partial agg dramatically reduces shuffle volume by computing local partial results first. If you see only one HashAggregate (no partial), Spark couldn't pre-aggregate — check for DISTINCT semantics blocking it.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-name"><span style="color:var(--red)">SortMergeJoin</span> <span class="node-type-badge" style="background:rgba(248,113,113,0.1);color:var(--red)">JOIN</span></div>
+        <div class="node-desc">Default large-large join. Requires two Exchange nodes (one per side) plus Sort nodes before the merge. Expensive but memory-safe. When you see this with a small table on one side, broadcast is likely a better choice.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-name"><span style="color:var(--cyan)">BroadcastHashJoin</span> <span class="node-type-badge" style="background:rgba(34,212,232,0.1);color:var(--cyan)">JOIN</span></div>
+        <div class="node-desc">Zero shuffle for the large side. Small table is collected by driver, broadcast to all executors as a hash table, large side probed locally. The fastest join strategy. Always look for this when one side is small.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-name"><span style="color:var(--purple)">Window</span> <span class="node-type-badge" style="background:rgba(167,139,250,0.1);color:var(--purple)">COMPUTE</span></div>
+        <div class="node-desc">Window function computation (<code>row_number()</code>, <code>rank()</code>, <code>lag()</code>). Requires an Exchange (shuffle by PARTITION BY key) and a Sort within each partition. Expensive — verify the PARTITION BY key has good cardinality.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-name"><span style="color:var(--yellow)">Sort</span> <span class="node-type-badge" style="background:rgba(251,191,36,0.1);color:var(--yellow)">COMPUTE</span></div>
+        <div class="node-desc">Sorts rows within a partition. Appears before SortMergeJoin (both inputs must be sorted) and before Window functions. Also appears when you call <code>.orderBy()</code> — a global sort on large data requires an <code>Exchange SinglePartition</code> which is catastrophic.</div>
+      </div>
+      <div class="node-card">
+        <div class="node-name"><span style="color:var(--text2)">Filter / Project</span> <span class="node-type-badge" style="background:rgba(136,146,170,0.1);color:var(--text2)">TRANSFORM</span></div>
+        <div class="node-desc"><strong>Filter</strong>: boolean predicate on rows. If appearing above a FileScan instead of pushed into it, data is read in full then filtered. <strong>Project</strong>: column selection — normally implemented as column pruning in columnar formats (Parquet only reads referenced columns).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">3.2 WholeStageCodegen</div>
+    <p class="body-text">Marked with an asterisk <code>*(N)</code> in the explain output. Everything inside this wrapper node has been compiled into a single JVM bytecode method — Spark fuses multiple operations into tight loops, eliminating virtual dispatch and object allocation overhead. This is why native expressions outperform equivalent UDFs by 3–10×.</p>
+    <div class="node-grid">
+      <div class="node-card" style="border-color:rgba(52,211,153,0.2)">
+        <div class="node-name" style="color:var(--green)">✅ Inside Codegen</div>
+        <div class="node-desc"><code>*(1) Project [a, b, CASE WHEN...]</code> — native expressions, when/otherwise, built-in functions. All fused into one tight generated loop. Best performance.</div>
+      </div>
+      <div class="node-card" style="border-color:rgba(248,113,113,0.2)">
+        <div class="node-name" style="color:var(--red)">❌ Breaks Codegen</div>
+        <div class="node-desc"><code>DeserializeToObject → MapElements → SerializeFromObject</code> — UDFs break the codegen boundary. Each row crosses the Spark→JVM boundary with boxing/unboxing. Every UDF is a performance regression.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ S4 ═══════════════════════════════ -->
+<div class="doc-section" id="s4">
+  <div class="section-number">SECTION 04</div>
+  <div class="section-title">Exchange and Shuffle Internals</div>
+  <div class="section-desc">Understanding why shuffles are expensive makes every metric in the Stages tab meaningful.</div>
+
+  <div class="sub-section">
+    <div class="sub-title">4.1 How a Shuffle Works</div>
+    <div class="shuffle-diagram">
+      <div class="shuffle-columns">
+        <div>
+          <div class="shuffle-side-label">Map Phase (Stage N)</div>
+          <div class="shuffle-task">Task 0<br><span style="color:var(--text3)">writes partition 0 data<br>writes partition 1 data<br>writes partition 2 data</span></div>
+          <div class="shuffle-task">Task 1<br><span style="color:var(--text3)">writes partition 0 data<br>writes partition 1 data<br>writes partition 2 data</span></div>
+        </div>
+        <div class="shuffle-middle">
+          <div>→</div>
+          <div class="shuffle-label-center">Network</div>
+          <div>→</div>
+        </div>
+        <div>
+          <div class="shuffle-side-label">Reduce Phase (Stage N+1)</div>
+          <div class="shuffle-task">Task 0 (partition 0)<br><span style="color:var(--text3)">reads from ALL map tasks<br>= cross-executor network fetch</span></div>
+          <div class="shuffle-task">Task 1 (partition 1)<br><span style="color:var(--text3)">reads from ALL map tasks<br>= cross-executor network fetch</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="warn-box"><span>⚠️</span> With 200 map tasks and 200 reduce partitions, every map task writes 200 output files — that's 40,000 small files on disk per shuffle. This is why shuffle I/O is so expensive and why minimizing Exchange nodes is the highest-leverage optimization.</div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">4.2 — 4.3 Shuffle Write & Read Metrics</div>
+    <table class="ref-table">
+      <tr><th>Metric</th><th>Phase</th><th>What It Means</th><th>Problem Signal</th></tr>
+      <tr><td>Shuffle Write Size per task</td><td>Map (Write)</td><td>How much data each map task wrote to disk. Should be roughly equal.</td><td>One task writes 100× more → hot key = skew</td></tr>
+      <tr><td>Shuffle Write Time</td><td>Map (Write)</td><td>Time to hash, sort, and write locally. Usually small.</td><td>High = disk I/O bottleneck on the node</td></tr>
+      <tr><td>Shuffle Read Size per task</td><td>Reduce (Read)</td><td>How much data each reduce task fetched from all map outputs.</td><td>Large imbalance = skew confirmed</td></tr>
+      <tr><td>Remote Bytes Read</td><td>Reduce (Read)</td><td>Data fetched from other executors (network transfer).</td><td>High relative to local = heavy network I/O</td></tr>
+      <tr><td>Fetch Wait Time</td><td>Reduce (Read)</td><td>Time reduce task spent waiting for shuffle blocks from map outputs.</td><td>&gt;1s = network bottleneck or slow shuffle service</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">4.4 Shuffle Spill</div>
+    <p class="body-text">When a shuffle task's in-memory buffer fills up, Spark spills to a temp file on disk. This adds extra I/O: write spill + read spill + write final output — three disk passes instead of one.</p>
+    <table class="ref-table">
+      <tr><th>Metric</th><th>Meaning</th><th>Action</th></tr>
+      <tr><td>Spill (Memory)</td><td>Amount of data in memory before spilling — the "would-be" in-memory size.</td><td>High = partitions are too large for available heap</td></tr>
+      <tr><td>Spill (Disk)</td><td>Amount written to the spill temp file. Should be 0 in a well-tuned job.</td><td>Increase shuffle.partitions to reduce partition size; or increase executor.memory</td></tr>
+    </table>
+    <div class="info-box"><span>💡</span> Spill is almost always fixed by increasing <code>spark.sql.shuffle.partitions</code> (more, smaller partitions) or increasing <code>spark.executor.memory</code>. If AQE is enabled, enabling coalescing won't help spill — coalescing reduces partition count which makes spill worse. Increase partitions first.</div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">4.5 — 4.6 Compression & Bottleneck Detection</div>
+    <p class="body-text">Spark compresses shuffle data by default (<code>spark.shuffle.compress = true</code>, using LZ4). This reduces network and disk I/O at the cost of CPU. For CPU-bound jobs on fast internal networks, consider disabling compression.</p>
+    <div class="cheat-card">
+      <div class="cheat-head">SHUFFLE BOTTLENECK CHECKLIST — SQL TAB</div>
+      <div class="cheat-body">
+        <div>1. Count Exchange nodes — ask: <span class="bad">is each Exchange necessary?</span></div>
+        <div>2. Can any be eliminated by broadcasting, pre-partitioning, or restructuring?</div>
+        <div>3. Check shuffle read size per task in Stages tab — <span class="bad">imbalance = skew</span></div>
+        <div>4. Check Spill (Disk) in Stages tab — <span class="good">0 = healthy</span></div>
+        <div>5. Is partial HashAggregate present before each Exchange? — <span class="good">yes = good</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ S5 ═══════════════════════════════ -->
+<div class="doc-section" id="s5">
+  <div class="section-number">SECTION 05</div>
+  <div class="section-title">Join Strategies</div>
+  <div class="section-desc">Choosing the right join strategy is one of the highest-leverage Spark optimizations. Understanding what each strategy looks like in the UI lets you verify your optimizer is making good decisions.</div>
+
+  <div class="sub-section">
+    <div class="join-cards">
+      <div class="join-card">
+        <div class="join-card-head" style="background:rgba(34,212,232,0.05);border-bottom-color:rgba(34,212,232,0.15)">
+          <div class="join-card-name" style="color:var(--cyan)">BroadcastHashJoin (BHJ)</div>
+          <span class="join-speed" style="background:rgba(52,211,153,0.1);color:var(--green)">⚡ FASTEST</span>
+        </div>
+        <div class="join-card-body">
+          <p><strong>When Spark uses it:</strong> Small side &lt; <code>autoBroadcastJoinThreshold</code> (default 10MB). AQE can upgrade to BHJ at runtime even if the estimate was wrong.</p>
+          <p><strong>Mechanism:</strong> Driver collects small side → broadcasts hash table to all executors → large side scanned locally and probed. Zero shuffle for large side.</p>
+          <p><strong>In UI:</strong> <code>BroadcastHashJoin</code> + <code>BroadcastExchange</code> (small side only). No Exchange for the large side. Fewer stages than SMJ.</p>
+          <p><strong>Risk:</strong> Broadcast table too large → driver OOM. Watch <code>Size in Memory</code> on driver executor.</p>
+          <pre><span class="kw">import</span> org.apache.spark.sql.functions.broadcast
+largeDF.join(broadcast(smallDF), <span class="str">"key"</span>)</pre>
+        </div>
+      </div>
+      <div class="join-card">
+        <div class="join-card-head" style="background:rgba(248,113,113,0.04);border-bottom-color:rgba(248,113,113,0.15)">
+          <div class="join-card-name" style="color:var(--red)">SortMergeJoin (SMJ)</div>
+          <span class="join-speed" style="background:rgba(251,191,36,0.1);color:var(--yellow)">🐢 DEFAULT</span>
+        </div>
+        <div class="join-card-body">
+          <p><strong>When Spark uses it:</strong> Both tables are large (neither qualifies for broadcast). Default for large-large joins.</p>
+          <p><strong>Mechanism:</strong> Both sides shuffled by join key (two Exchanges) → both sides sorted within partitions → merge step walks both sorted streams simultaneously.</p>
+          <p><strong>In UI:</strong> <code>SortMergeJoin</code> with two <code>Exchange hashpartitioning</code> nodes as inputs, each fed by a <code>Sort</code>. 3 stages minimum.</p>
+          <p><strong>Optimization:</strong> If one side can be pre-partitioned (bucketed), one Exchange can be eliminated. If one side is small enough at runtime, AQE upgrades to BHJ.</p>
+        </div>
+      </div>
+      <div class="join-card">
+        <div class="join-card-head" style="background:rgba(167,139,250,0.04);border-bottom-color:rgba(167,139,250,0.15)">
+          <div class="join-card-name" style="color:var(--purple)">ShuffleHashJoin (SHJ)</div>
+          <span class="join-speed" style="background:rgba(79,142,247,0.1);color:var(--blue)">⚡ FAST</span>
+        </div>
+        <div class="join-card-body">
+          <p><strong>When Spark uses it:</strong> Manually enabled via <code>spark.sql.join.preferSortMergeJoin = false</code>. One side is smaller but too large to broadcast.</p>
+          <p><strong>Mechanism:</strong> Shuffles both sides, builds a hash table from the smaller side. No sorting required. Faster than SMJ for moderately sized tables.</p>
+          <p><strong>Risk:</strong> Can OOM if hash table doesn't fit in memory. Spark 3.x prefers SMJ by default for stability. Only enable explicitly when you know your data size.</p>
+        </div>
+      </div>
+      <div class="join-card">
+        <div class="join-card-head" style="background:rgba(248,113,113,0.04);border-bottom-color:rgba(248,113,113,0.2)">
+          <div class="join-card-name" style="color:var(--red)">CartesianProduct</div>
+          <span class="join-speed" style="background:rgba(248,113,113,0.1);color:var(--red)">💀 DANGEROUS</span>
+        </div>
+        <div class="join-card-body">
+          <p><strong>When Spark uses it:</strong> A join with no join condition (cross join) or when join conditions are written incorrectly — e.g., using the wrong DataFrame reference.</p>
+          <p><strong>Performance:</strong> O(M × N) output rows. Catastrophically expensive for large inputs. 50M × 5M = 250 trillion rows attempted.</p>
+          <p><strong>In UI:</strong> <code>CartesianProduct</code> node with a dramatically higher row count output than either input. If you see this unexpectedly, your join condition references the wrong table or is missing entirely.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">5.5 Join Strategy Decision Tree</div>
+    <div class="decision-tree">
+      <div class="dt-row"><span class="dt-q">Q: Is the small side &lt; autoBroadcastJoinThreshold (10MB)?</span></div>
+      <div class="dt-row dt-indent"><span class="dt-y">YES →</span> <span class="dt-result">BroadcastHashJoin</span> <span style="color:var(--text3)">← fastest, zero shuffle for large side</span></div>
+      <div class="dt-row dt-indent"><span class="dt-n">NO →</span></div>
+      <div class="dt-row" style="padding-left:32px"><span class="dt-q">Q: Is preferSortMergeJoin = false AND small side fits in hash table?</span></div>
+      <div class="dt-row" style="padding-left:52px"><span class="dt-y">YES →</span> <span class="dt-result">ShuffleHashJoin</span> <span style="color:var(--text3)">← faster than SMJ, no sort required</span></div>
+      <div class="dt-row" style="padding-left:52px"><span class="dt-n">NO →</span> <span class="dt-result">SortMergeJoin</span> <span style="color:var(--text3)">← default safe choice, two shuffles + sorts</span></div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);color:var(--text3);font-size:10.5px">
+        AQE override: even if SMJ is selected at plan time, AQE may upgrade to BHJ at runtime if the actual build side is smaller than the threshold after filtering.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ S6 ═══════════════════════════════ -->
+<div class="doc-section" id="s6">
+  <div class="section-number">SECTION 06</div>
+  <div class="section-title">Stage-Level Debugging</div>
+  <div class="section-desc">The Stages tab is where you diagnose the root cause of slowness. Data skew, GC pressure, spill, and network bottlenecks all manifest here.</div>
+
+  <div class="sub-section">
+    <div class="sub-title">6.1 Detecting Data Skew</div>
+    <p class="body-text">Click into a Stage and look at the task duration histogram. Skew manifests as a long right tail — median vs. max task time divergence is the clearest signal.</p>
+    <div class="node-grid">
+      <div class="node-card" style="border-color:rgba(52,211,153,0.2)">
+        <div class="node-name" style="color:var(--green)">✅ Healthy Stage</div>
+        <div class="node-desc">Narrow histogram — nearly all tasks complete in similar time. Median ≈ P95 ≈ Max. Shuffle read size is uniform across tasks.</div>
+      </div>
+      <div class="node-card" style="border-color:rgba(248,113,113,0.2)">
+        <div class="node-name" style="color:var(--red)">❌ Skewed Stage</div>
+        <div class="node-desc">Long right tail — 199 tasks finish in 2s, 1 task takes 4 minutes. Sort tasks by Shuffle Read Size descending to confirm one task reads far more data than others.</div>
+      </div>
+    </div>
+    <table class="ref-table" style="margin-top:14px">
+      <tr><th>Metric</th><th>Healthy Range</th><th>Problem Signal</th></tr>
+      <tr><td>Task duration spread</td><td>Narrow histogram (bell-shaped)</td><td>Long right tail = skew</td></tr>
+      <tr><td>GC time / Task time</td><td>&lt; 5%</td><td>&gt; 10% = heap pressure</td></tr>
+      <tr><td>Spill (Disk)</td><td>0 bytes</td><td>Any value = OOM pressure</td></tr>
+      <tr><td>Shuffle Read Size (max/median)</td><td>Ratio ≈ 1–3×</td><td>Ratio &gt; 10× = hot key confirmed</td></tr>
+      <tr><td>Failed Tasks</td><td>0</td><td>Any failures = instability</td></tr>
+      <tr><td>Fetch Wait Time</td><td>&lt; 1 second</td><td>High = network bottleneck or slow shuffle service</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">6.2 Straggler Root Causes</div>
+    <div class="node-grid">
+      <div class="node-card"><div class="node-name" style="color:var(--red)">Data Skew</div><div class="node-desc">Task's partition has far more data than others. Fix: AQE skew join optimization, manual salting, or filter hot keys and process separately with a union.</div></div>
+      <div class="node-card"><div class="node-name" style="color:var(--orange)">GC Pressure</div><div class="node-desc">Task JVM heap is full, causing long GC pauses. Fix: increase partition count (smaller partitions), increase executor.memory, check for closures capturing large objects.</div></div>
+      <div class="node-card"><div class="node-name" style="color:var(--yellow)">Disk Spill</div><div class="node-desc">Partition is too large for available executor memory, writing to disk. Fix: increase shuffle.partitions to reduce partition size, or increase executor.memory.</div></div>
+      <div class="node-card"><div class="node-name" style="color:var(--purple)">Remote Shuffle Fetch</div><div class="node-desc">Task waiting for shuffle blocks from slow nodes. Fix: check Fetch Wait Time — if high, investigate network topology or enable external shuffle service.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ S7 ═══════════════════════════════ -->
+<div class="doc-section" id="s7">
+  <div class="section-number">SECTION 07</div>
+  <div class="section-title">Adaptive Query Execution</div>
+  <div class="section-desc">AQE is enabled by default in Spark 3.2+. Understanding its three optimizations and how they appear in the UI is essential for modern Spark debugging.</div>
+
+  <div class="sub-section">
+    <div class="sub-title">7.1 Coalescing Shuffle Partitions</div>
+    <p class="body-text"><strong>Problem:</strong> You set <code>shuffle.partitions = 200</code>, but after a 99%-selective filter, the remaining 200 partitions are 1KB each. 200 tiny tasks — 99% scheduling overhead, 1% actual work.</p>
+    <p class="body-text"><strong>AQE solution:</strong> After each shuffle completes, AQE inspects actual partition sizes and merges small adjacent partitions into larger ones automatically.</p>
+    <p class="body-text"><strong>In the UI:</strong> SQL plan shows <code>AQEShuffleRead</code> instead of <code>Exchange</code>. Task count in the post-shuffle stage will be far less than <code>shuffle.partitions</code> (e.g., 200 → 15 tasks).</p>
+    <div class="config-block">
+      <div><span class="config-key">spark.sql.adaptive.coalescePartitions.enabled</span> = <span class="config-val">true</span></div>
+      <div><span class="config-key">spark.sql.adaptive.coalescePartitions.minPartitionSize</span> = <span class="config-val">1MB</span> &nbsp;<span style="color:var(--text3)">← lower = more aggressive coalescing</span></div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">7.2 Skew Join Optimization</div>
+    <p class="body-text"><strong>Problem:</strong> One partition in a SortMergeJoin is 50GB while others are 50MB. The task processing that partition runs for 30 minutes, holding up the entire stage.</p>
+    <p class="body-text"><strong>AQE solution:</strong> Detects skewed partitions (larger than <code>skewedPartitionFactor × median</code> AND larger than <code>skewedPartitionThresholdInBytes</code>) and splits them into multiple sub-tasks. The matching partition from the other side is read multiple times.</p>
+    <p class="body-text"><strong>In the UI:</strong> SQL plan shows <code>SkewJoin=true</code> annotation on the SortMergeJoin node. The skewed stage has <em>more</em> tasks than <code>shuffle.partitions</code> because the skewed partitions were split.</p>
+    <div class="config-block">
+      <div><span class="config-key">spark.sql.adaptive.skewJoin.enabled</span> = <span class="config-val">true</span></div>
+      <div><span class="config-key">spark.sql.adaptive.skewJoin.skewedPartitionFactor</span> = <span class="config-val">5</span> &nbsp;<span style="color:var(--text3)">← partition is skewed if size > 5× median</span></div>
+      <div><span class="config-key">spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes</span> = <span class="config-val">256MB</span></div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-title">7.3 Dynamic Broadcast Join</div>
+    <p class="body-text"><strong>Problem:</strong> The optimizer estimates a table as 500MB (too large to broadcast) but the actual data after filtering at runtime is only 5MB. Static planning chose SMJ — 2 expensive shuffles — for a join that could have been BHJ.</p>
+    <p class="body-text"><strong>AQE solution:</strong> After the build side of a join shuffles, AQE measures the actual size. If it's below the broadcast threshold, AQE converts the SortMergeJoin to a BroadcastHashJoin at runtime.</p>
+    <p class="body-text"><strong>In the UI:</strong> The physical plan initially shows <code>SortMergeJoin</code>, but after execution the plan is updated to show <code>BroadcastHashJoin</code>. You'll see <code>AdaptiveSparkPlan</code> at the root with a "re-optimized plan" section showing the runtime decision.</p>
+    <div class="info-box"><span>💡</span> Always read the <strong>final executed plan</strong> in the SQL tab, not the initial plan. With AQE active, the initial plan is a best-guess that may be significantly different from what was actually executed.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ S8 ═══════════════════════════════ -->
+<div class="doc-section" id="s8">
+  <div class="section-number">SECTION 08</div>
+  <div class="section-title">Performance Debugging Playbook</div>
+  <div class="section-desc">Symptom → root cause → fix. A repeatable diagnostic workflow for every Spark performance problem you'll encounter.</div>
+
+  <div class="sub-section">
+    <div class="signal-card">
+      <div class="signal-head">
+        <div class="signal-icon" style="background:rgba(248,113,113,0.1)">🐌</div>
+        <div class="signal-title">Symptom: Slow Join</div>
+      </div>
+      <div class="signal-body">
+        <p>1. Open SQL tab → find the query → look at the join node type. Is it <code>SortMergeJoin</code> when one side is small? → Force broadcast with <code>broadcast()</code> hint.</p>
+        <p>2. Is it <code>BroadcastHashJoin</code> but still slow? → The broadcast table may be too large, causing driver OOM. Check driver memory usage.</p>
+        <p>3. Count Exchange nodes → can any join be eliminated by pre-partitioning (bucketing) on the join key?</p>
+        <p>4. Check AQE — if enabled, did it upgrade to BHJ at runtime? Look for <code>AdaptiveSparkPlan</code> and inspect the final plan.</p>
+      </div>
+    </div>
+
+    <div class="signal-card">
+      <div class="signal-head">
+        <div class="signal-icon" style="background:rgba(249,115,22,0.1)">⚖️</div>
+        <div class="signal-title">Symptom: Skewed Key (Straggler Task)</div>
+      </div>
+      <div class="signal-body">
+        <p>1. Stages tab → find the long-running stage → click into it → task duration histogram → identify the straggler count.</p>
+        <p>2. Sort tasks by Shuffle Read Size descending → confirm the straggler reads far more data (100× typical).</p>
+        <p>3. Solutions in order of preference: (a) Enable AQE skew join optimization — handles most cases automatically. (b) Manual salting: add random integer 0–N to the key, duplicate the other side N times, join on (key, salt). (c) Filter out the hot key and process separately with a union.</p>
+      </div>
+    </div>
+
+    <div class="signal-card">
+      <div class="signal-head">
+        <div class="signal-icon" style="background:rgba(251,191,36,0.1)">🔀</div>
+        <div class="signal-title">Symptom: Too Many Shuffle Partitions</div>
+      </div>
+      <div class="signal-body">
+        <p>1. SQL tab → count Exchange nodes. After each Exchange, check the stage's task count and per-task data size in Stages tab.</p>
+        <p>2. If tasks are processing &lt;1MB each → too many partitions → reduce <code>spark.sql.shuffle.partitions</code> or enable AQE coalescing.</p>
+        <p>3. If AQE is enabled and partitions are still tiny → check <code>minPartitionSize</code> config — it may be too high, preventing coalescing.</p>
+        <p><strong>Formula:</strong> Optimal partition count ≈ Total shuffle write / 128MB. Example: 100GB shuffle → ~800 partitions.</p>
+      </div>
+    </div>
+
+    <div class="signal-card">
+      <div class="signal-head">
+        <div class="signal-icon" style="background:rgba(34,212,232,0.1)">📡</div>
+        <div class="signal-title">Symptom: Missing Broadcast Join</div>
+      </div>
+      <div class="signal-body">
+        <p>1. SQL tab shows <code>SortMergeJoin</code> where you expected <code>BroadcastHashJoin</code>.</p>
+        <p>2. Check <code>spark.sql.autoBroadcastJoinThreshold</code> in Environment tab — if -1, broadcasts are disabled.</p>
+        <p>3. If threshold is set but BHJ isn't happening: optimizer's size estimate is too high. Run <code>ANALYZE TABLE</code> to update statistics, or force with <code>broadcast()</code> hint.</p>
+        <p>4. If AQE is enabled and still no BHJ: the actual runtime size may genuinely exceed the threshold.</p>
+      </div>
+    </div>
+
+    <div class="signal-card">
+      <div class="signal-head">
+        <div class="signal-icon" style="background:rgba(52,211,153,0.1)">📁</div>
+        <div class="signal-title">Symptom: Missing Partition Pruning</div>
+      </div>
+      <div class="signal-body">
+        <p>1. SQL tab → click the FileScan node → look for <code>PartitionFilters</code> — if empty, your filter was not pushed to directory-level scan.</p>
+        <p>2. Common causes: filtering via a UDF (Catalyst can't push opaque functions), wrapping partition column in an expression (<code>year(event_date) = 2024</code> won't prune — use <code>event_date &gt;= '2024-01-01'</code> instead), or filtering after a join (filter must reference the partitioned table directly).</p>
+        <p>3. Note: <code>PushedFilters</code> (row-level, inside Parquet reader) is different from <code>PartitionFilters</code> (directory-level). Both should be populated for maximum efficiency.</p>
+      </div>
+    </div>
+
+    <div class="signal-card">
+      <div class="signal-head">
+        <div class="signal-icon" style="background:rgba(248,113,113,0.1)">🗑️</div>
+        <div class="signal-title">Symptom: High GC / Executor Memory Pressure</div>
+      </div>
+      <div class="signal-body">
+        <p>1. Executors tab → check GC Time column → if &gt;10% of Task Time on specific executors, those executors hold oversized partitions.</p>
+        <p>2. Solutions: increase partition count to reduce per-partition size; increase <code>spark.executor.memory</code>; tune <code>spark.memory.fraction</code> and <code>spark.memory.storageFraction</code>; check for closures capturing large objects in transformations.</p>
+      </div>
+    </div>
+
+    <div class="signal-card">
+      <div class="signal-head">
+        <div class="signal-icon" style="background:rgba(167,139,250,0.1)">⚙️</div>
+        <div class="signal-title">Symptom: Codegen Disabled (UDF in Plan)</div>
+      </div>
+      <div class="signal-body">
+        <p>1. SQL tab physical plan → operations appear <em>outside</em> <code>*(N) WholeStageCodegen</code> blocks. You see <code>DeserializeToObject</code>, <code>MapElements</code>, <code>SerializeFromObject</code> nodes.</p>
+        <p>2. What it means: a UDF broke the WholeStageCodegen boundary. Everything outside the codegen block is interpreted, not JIT-compiled — 3–10× slower.</p>
+        <p>3. Fix: replace UDFs with native Spark functions (<code>when</code>, <code>otherwise</code>, <code>regexp_extract</code>, <code>concat</code>, etc.). For Scala UDFs that can't be eliminated, consider vectorized pandas_udf (Arrow-based, processes batches).</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ S9 ═══════════════════════════════ -->
+<div class="doc-section" id="s9">
+  <div class="section-number">SECTION 09</div>
+  <div class="section-title">Optimization Cheat Sheet</div>
+  <div class="section-desc">Five quick-reference workflows for the most common Spark performance problems.</div>
+
+  <div class="cheat-grid">
+    <div class="cheat-card">
+      <div class="cheat-head">🔍 Detect Skew</div>
+      <div class="cheat-body">
+        <div>Stages tab <span class="arrow">→</span> click slow stage</div>
+        <div><span class="arrow">→</span> task duration histogram</div>
+        <div><span class="arrow">→</span> look for right tail</div>
+        <div><span class="arrow">→</span> sort tasks by Shuffle Read Size ↓</div>
+        <div><span class="arrow">→</span> top task <span class="bad">&gt;&gt;</span> median task <span class="bad">= skew confirmed</span></div>
+        <div style="margin-top:6px"><span class="good">Fix:</span> AQE skewJoin or salt the key</div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-head">📊 Optimal Shuffle Partitions</div>
+      <div class="cheat-body">
+        <div>Target: <span class="neutral">100–200MB per partition</span> after shuffle</div>
+        <div>Count ≈ total_shuffle_write / 128MB</div>
+        <div style="margin-top:6px">Example: 100GB shuffle write</div>
+        <div><span class="arrow">→</span> 100GB / 128MB = <span class="good">~800 partitions</span></div>
+        <div style="margin-top:6px">Or: enable AQE to auto-coalesce</div>
+        <div><span class="arrow">→</span> <code>adaptive.enabled = true</code></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-head">🔀 Detect Unnecessary Shuffles</div>
+      <div class="cheat-body">
+        <div>SQL tab <span class="arrow">→</span> count Exchange nodes</div>
+        <div style="margin-top:4px">For each Exchange, ask:</div>
+        <div>• Join? Can one side be broadcast?</div>
+        <div>• groupBy? Is partial agg before Exchange?</div>
+        <div>• repartition() call that could be removed?</div>
+        <div>• orderBy on large data? <span class="bad">SinglePartition = bad</span></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-head">🔗 Detect Inefficient Joins</div>
+      <div class="cheat-body">
+        <div>SMJ + small side <span class="arrow">→</span> <span class="neutral">force broadcast</span></div>
+        <div>CartesianProduct <span class="arrow">→</span> <span class="bad">fix missing join condition</span></div>
+        <div>BHJ but slow <span class="arrow">→</span> <span class="neutral">broadcast table too large</span></div>
+        <div>Multiple SMJs same key</div>
+        <div><span class="arrow">→</span> <span class="neutral">consider pre-partitioning/bucketing</span></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-head">📋 Detect Bad Partitioning</div>
+      <div class="cheat-body">
+        <div>Tasks &lt;1MB each <span class="arrow">→</span> <span class="neutral">too many partitions</span></div>
+        <div><span class="arrow">→</span> coalesce or reduce shuffle.partitions</div>
+        <div style="margin-top:4px">Tasks &gt;1GB each <span class="arrow">→</span> <span class="bad">too few partitions</span></div>
+        <div><span class="arrow">→</span> repartition or increase shuffle.partitions</div>
+        <div style="margin-top:4px">Straggler tasks <span class="arrow">→</span> skewed partitioning</div>
+        <div><span class="arrow">→</span> <span class="neutral">salt or AQE skew join</span></div>
+      </div>
+    </div>
+    <div class="cheat-card">
+      <div class="cheat-head">📁 Detect Missing Predicate Pushdown</div>
+      <div class="cheat-body">
+        <div>SQL tab <span class="arrow">→</span> FileScan node <span class="arrow">→</span> expand</div>
+        <div><span class="arrow">→</span> check "PushedFilters" list</div>
+        <div><span class="arrow">→</span> if your WHERE isn't listed <span class="arrow">→</span> <span class="bad">not pushed</span></div>
+        <div style="margin-top:4px">Also check "PartitionFilters"</div>
+        <div><span class="bad">year(date) = 2024</span> <span class="arrow">→</span> <span class="bad">won't prune</span></div>
+        <div><span class="good">date &gt;= '2024-01-01'</span> <span class="arrow">→</span> <span class="good">will prune</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ S10 ═══════════════════════════════ -->
+<div class="doc-section" id="s10">
+  <div class="section-number">SECTION 10</div>
+  <div class="section-title">How Senior Engineers Use Spark UI</div>
+  <div class="section-desc">A senior Spark engineer never looks at Spark UI randomly. They follow a deliberate workflow — systematic, hypothesis-driven, one change at a time.</div>
+
+  <div class="workflow-steps">
+    <div class="wf-step">
+      <div class="wf-num">1</div>
+      <div class="wf-content">
+        <div class="wf-title">Establish the Baseline</div>
+        <div class="wf-desc">Before any optimization, run the job and record: total job duration, stage durations, key exchange sizes, task count per stage, and any spill. Screenshot or log these numbers. Without a baseline, you can't measure improvement — you're just guessing.</div>
+      </div>
+    </div>
+    <div class="wf-step">
+      <div class="wf-num">2</div>
+      <div class="wf-content">
+        <div class="wf-title">Start With the SQL Tab</div>
+        <div class="wf-desc">Find the query for the slow operation. Read the physical plan as text (also call <code>.explain("formatted")</code> in code for better readability). Count Exchange nodes. Identify join types. Check for expected optimizations: BHJ, partition filters, codegen markers (<code>*(N)</code>). Form a hypothesis about what's wrong before looking at stage metrics.</div>
+      </div>
+    </div>
+    <div class="wf-step">
+      <div class="wf-num">3</div>
+      <div class="wf-content">
+        <div class="wf-title">Find the Bottleneck Stage</div>
+        <div class="wf-desc">Go to Stages tab. Sort by Duration descending. Click into the slowest stage. Look at the task duration histogram. Ask three questions: Is it data skew (right tail)? Is it GC (check GC Time column)? Is it spill (check Spill Disk column)? The histogram tells you the root cause — not just that it's slow, but why.</div>
+      </div>
+    </div>
+    <div class="wf-step">
+      <div class="wf-num">4</div>
+      <div class="wf-content">
+        <div class="wf-title">Correlate Stage to Plan</div>
+        <div class="wf-desc">Once you've found the slow stage, go back to the SQL tab and find which physical plan node corresponds to that stage. This correlation is the key insight: now you know exactly which <em>operation</em> is slow (a join, a window function, an aggregation) and why (skew, wrong join strategy, missing filter pushdown).</div>
+      </div>
+    </div>
+    <div class="wf-step">
+      <div class="wf-num">5</div>
+      <div class="wf-content">
+        <div class="wf-title">Check Executors for Systemic Issues</div>
+        <div class="wf-desc">Executors tab: are all executors healthy? Is GC high on specific executors? Is memory pressure causing cache evictions? Are some executors processing far more data than others? Systemic issues (bad node, OOM, network partition) won't show in the stage view alone.</div>
+      </div>
+    </div>
+    <div class="wf-step">
+      <div class="wf-num">6</div>
+      <div class="wf-content">
+        <div class="wf-title">Apply One Change at a Time</div>
+        <div class="wf-desc">Never apply multiple optimizations simultaneously — you won't know which one helped. Apply the most impactful change (e.g., enable AQE, force broadcast, increase shuffle partitions) and re-run. If you apply 3 changes and get 2× speedup, you learned nothing about why it improved or which change to keep.</div>
+      </div>
+    </div>
+    <div class="wf-step">
+      <div class="wf-num">7</div>
+      <div class="wf-content">
+        <div class="wf-title">Compare Plans, Not Just Times</div>
+        <div class="wf-desc">After optimization, go to the SQL tab and confirm the plan changed as expected. A 2× speedup from a plan that's structurally wrong is luck — you got faster data or a favorable partition distribution. A plan that's <em>structurally correct</em> (fewer exchanges, BHJ where expected, pruning active) will scale reliably to larger data.</div>
+      </div>
+    </div>
+    <div class="wf-step">
+      <div class="wf-num">8</div>
+      <div class="wf-content">
+        <div class="wf-title">Validate at Scale</div>
+        <div class="wf-desc">A local test with 1M rows proves nothing. Re-run the optimized job on production data (or a representative sample at full scale) and verify the improvements hold. Some optimizations that work at small scale break at large scale — especially broadcast join thresholds and AQE configurations.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:24px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:12px">THE MENTAL MODEL</div>
+    <p style="font-size:14px;color:#c5cfff;line-height:1.8">Every second of job time is spent doing one of: <strong style="color:var(--blue)">reading data</strong>, <strong style="color:var(--green)">computing (CPU)</strong>, <strong style="color:var(--orange)">writing shuffle</strong>, <strong style="color:var(--purple)">waiting for network</strong>, or <strong style="color:var(--red)">waiting for GC</strong>.</p>
+    <p style="font-size:14px;color:#8892aa;margin-top:10px;line-height:1.8">The Spark UI makes all of these visible. The job of performance engineering is to systematically eliminate the <em>biggest bottleneck</em>, then find the next one. Don't optimize the second-biggest bottleneck until you've handled the first.</p>
+  </div>
+</div>
+
+  </div><!-- end content -->
+</main>
+
+<script>
+  const links = document.querySelectorAll('.nav-link');
+  links.forEach(link => {
+    link.addEventListener('click', () => {
+      links.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+    });
+  });
+
+  window.addEventListener('scroll', () => {
+    const sections = document.querySelectorAll('.doc-section');
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    links.forEach(l => {
+      const href = l.getAttribute('href')?.replace('#', '');
+      l.classList.toggle('active', href === current);
+    });
+  });
+</script>
+</body>
+</html>
