@@ -1,0 +1,2371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LedgerForge — Spark Interview Prep</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,600;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #07080d;
+    --surface: #0d0f18;
+    --surface2: #121520;
+    --border: #1c2035;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59,130,246,0.15);
+    --green: #22d3a5;
+    --green-glow: rgba(34,211,165,0.12);
+    --amber: #f59e0b;
+    --amber-glow: rgba(245,158,11,0.12);
+    --red: #f87171;
+    --red-glow: rgba(248,113,113,0.1);
+    --purple: #a78bfa;
+    --purple-glow: rgba(167,139,250,0.1);
+    --text: #dde1f0;
+    --muted: #6b7280;
+    --muted2: #4b5563;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14.5px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* BG NOISE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,0.07), transparent);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ══════════════════ HEADER ══════════════════ */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 56px 48px 48px;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .header-watermark {
+    position: absolute;
+    right: -20px;
+    top: -10px;
+    font-family: 'Fraunces', serif;
+    font-size: 160px;
+    font-weight: 900;
+    color: rgba(59,130,246,0.04);
+    letter-spacing: -8px;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .bank-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 100px;
+    padding: 5px 16px 5px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #93c5fd;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+
+  .bank-chip-dot {
+    width: 22px; height: 22px;
+    background: linear-gradient(135deg, #3b82f6, #22d3a5);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(34px, 5vw, 64px);
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -2.5px;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+
+  h1 span {
+    background: linear-gradient(90deg, #3b82f6 0%, #22d3a5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-desc {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 12px;
+    max-width: 600px;
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 24px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .hstat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .hstat-val {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+  }
+
+  .hstat-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .hdivider { width: 1px; background: var(--border); align-self: stretch; }
+
+  /* ══════════════════ TABS ══════════════════ */
+  .tab-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(7,8,13,0.9);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 48px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tab-bar::-webkit-scrollbar { display: none; }
+
+  .tab {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { color: #93c5fd; border-bottom-color: var(--accent); }
+
+  .tab-icon { font-size: 14px; }
+
+  /* ══════════════════ LAYOUT ══════════════════ */
+  .page-content {
+    position: relative;
+    z-index: 1;
+    max-width: 1360px;
+    margin: 0 auto;
+  }
+
+  .tab-panel { display: none; padding: 40px 48px; }
+  .tab-panel.active { display: block; }
+
+  /* ══════════════════ SCHEMA TAB ══════════════════ */
+  .schema-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+    margin-bottom: 40px;
+  }
+
+  .schema-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .schema-card:hover {
+    border-color: rgba(59,130,246,0.3);
+    box-shadow: 0 4px 24px rgba(59,130,246,0.07);
+  }
+
+  .schema-card-header {
+    padding: 16px 18px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .schema-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .schema-table-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: #e0e7ff;
+  }
+
+  .schema-row-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .schema-badge {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    border-radius: 4px;
+    padding: 2px 7px;
+    flex-shrink: 0;
+  }
+
+  .schema-desc {
+    padding: 12px 18px;
+    font-size: 12.5px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .schema-cols {
+    padding: 10px 18px 14px;
+  }
+
+  .schema-col-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-size: 12px;
+  }
+
+  .schema-col-row:last-child { border-bottom: none; }
+
+  .col-name {
+    font-family: 'DM Mono', monospace;
+    color: #a5b4fc;
+    font-size: 11.5px;
+    min-width: 140px;
+  }
+
+  .col-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 3px;
+    padding: 1px 6px;
+    color: var(--muted);
+  }
+
+  .col-desc { color: var(--muted); font-size: 11.5px; }
+
+  .col-key {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    background: rgba(59,130,246,0.12);
+    color: #93c5fd;
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+
+  .col-quirk {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    background: rgba(248,113,113,0.1);
+    color: #fca5a5;
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin-left: auto;
+  }
+
+  /* ERD */
+  .erd-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+
+  .erd-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+
+  .erd-container {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+  }
+
+  .erd-node {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    text-align: center;
+  }
+
+  .erd-node-name { color: #e0e7ff; font-weight: 500; font-size: 12px; }
+  .erd-node-count { color: var(--muted); font-size: 10px; margin-top: 2px; }
+  .erd-node.center { border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.07); }
+  .erd-node.center .erd-node-name { color: #93c5fd; }
+
+  .erd-arrow { color: var(--muted2); font-size: 18px; }
+
+  /* Join path pills */
+  .join-paths {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .join-path {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .jp-num {
+    width: 20px; height: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .jp-node {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 3px 9px;
+    color: #c7d2fe;
+  }
+
+  .jp-arrow { color: var(--muted2); padding: 0 4px; }
+  .jp-key { color: var(--muted); font-size: 10px; }
+
+  /* Quirks box */
+  .quirks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .quirk-item {
+    background: rgba(248,113,113,0.05);
+    border: 1px solid rgba(248,113,113,0.15);
+    border-radius: 9px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+  }
+
+  .quirk-table { font-family: 'DM Mono', monospace; font-size: 11px; color: #fca5a5; margin-bottom: 4px; }
+  .quirk-text { color: #c0c0cc; }
+
+  /* ══════════════════ PROBLEMS TAB ══════════════════ */
+  .section-header-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+
+  .sec-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-weight: 500;
+  }
+
+  .sec-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #fff;
+  }
+
+  .sec-count {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 12px;
+  }
+
+  /* Problem Card */
+  .problem-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .problem-card:hover {
+    border-color: rgba(59,130,246,0.25);
+    box-shadow: 0 2px 20px rgba(59,130,246,0.06);
+  }
+
+  .problem-card.open {
+    border-color: rgba(59,130,246,0.35);
+    box-shadow: 0 4px 28px rgba(59,130,246,0.08);
+  }
+
+  .prob-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+  }
+
+  .prob-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 5px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .prob-title {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #e0e7ff;
+    flex: 1;
+    line-height: 1.4;
+  }
+
+  .prob-context-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  .prob-chevron {
+    color: var(--muted);
+    font-size: 11px;
+    transition: transform 0.25s;
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+
+  .problem-card.open .prob-chevron {
+    transform: rotate(180deg);
+    color: #93c5fd;
+  }
+
+  /* Concept tags */
+  .concept-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 0 18px 14px 50px;
+  }
+
+  .ctag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 7px;
+    color: var(--muted);
+  }
+
+  /* Problem body */
+  .prob-body {
+    display: none;
+    border-top: 1px solid var(--border);
+    animation: slideIn 0.2s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .problem-card.open .prob-body { display: block; }
+
+  .prob-section {
+    padding: 16px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    gap: 16px;
+  }
+
+  .prob-section:last-child { border-bottom: none; }
+
+  .prob-section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted2);
+    min-width: 80px;
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .prob-section-content {
+    flex: 1;
+    font-size: 13.5px;
+    color: #c0c8e0;
+    line-height: 1.7;
+  }
+
+  .prob-section-content p { margin-bottom: 8px; }
+  .prob-section-content p:last-child { margin-bottom: 0; }
+
+  /* Output cols */
+  .output-cols {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 4px;
+  }
+
+  .ocol {
+    font-family: 'DM Mono', monospace;
+    font-size: 10.5px;
+    background: rgba(34,211,165,0.07);
+    border: 1px solid rgba(34,211,165,0.18);
+    border-radius: 4px;
+    padding: 2px 7px;
+    color: #6ee7b7;
+  }
+
+  /* Hint/warn boxes */
+  .hint-box {
+    background: rgba(34,211,165,0.05);
+    border: 1px solid rgba(34,211,165,0.18);
+    border-radius: 7px;
+    padding: 10px 13px;
+    margin-top: 10px;
+    font-size: 12.5px;
+    color: #6ee7b7;
+    display: flex;
+    gap: 8px;
+  }
+
+  .warn-box {
+    background: rgba(245,158,11,0.05);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 7px;
+    padding: 10px 13px;
+    margin-top: 10px;
+    font-size: 12.5px;
+    color: #fcd34d;
+    display: flex;
+    gap: 8px;
+  }
+
+  /* Code block */
+  pre {
+    background: #06070e;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 7px;
+    padding: 13px 15px;
+    overflow-x: auto;
+    margin: 10px 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px;
+    color: #a0aec0;
+    line-height: 1.6;
+  }
+
+  pre .kw { color: #93c5fd; }
+  pre .fn { color: #86efac; }
+  pre .str { color: #fcd34d; }
+  pre .cm { color: #4b5563; }
+  pre .num { color: #f9a8d4; }
+
+  code {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.18);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: #93c5fd;
+  }
+
+  /* ══════════════════ STREAMING TAB ══════════════════ */
+  .stream-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .stream-card:hover { border-color: rgba(34,211,165,0.3); }
+  .stream-card.open { border-color: rgba(34,211,165,0.4); }
+
+  .stream-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+  }
+
+  .stream-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    background: rgba(34,211,165,0.1);
+    border: 1px solid rgba(34,211,165,0.2);
+    color: #6ee7b7;
+    border-radius: 5px;
+    padding: 3px 8px;
+    flex-shrink: 0;
+  }
+
+  .stream-title {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #e0f2fe;
+    flex: 1;
+  }
+
+  .stream-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  .stream-chevron {
+    color: var(--muted);
+    font-size: 11px;
+    transition: transform 0.25s;
+    margin-top: 3px;
+  }
+
+  .stream-card.open .stream-chevron { transform: rotate(180deg); color: var(--green); }
+
+  .stream-body {
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .stream-card.open .stream-body { display: block; animation: slideIn 0.2s ease; }
+
+  .stream-concepts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 0 18px 14px 50px;
+  }
+
+  .sctag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    background: rgba(34,211,165,0.07);
+    border: 1px solid rgba(34,211,165,0.15);
+    border-radius: 4px;
+    padding: 2px 7px;
+    color: #6ee7b7;
+  }
+
+  /* Mode comparison table */
+  .mode-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin: 10px 0;
+  }
+
+  .mode-table th {
+    background: var(--surface2);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    padding: 8px 13px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mode-table td {
+    padding: 8px 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    color: #c0c8e0;
+    vertical-align: top;
+  }
+
+  .mode-table tr:last-child td { border-bottom: none; }
+  .mode-table tr:hover td { background: rgba(59,130,246,0.03); }
+
+  .yes { color: #6ee7b7; }
+  .no { color: #f87171; }
+
+  /* ══════════════════ INSIGHTS TAB ══════════════════ */
+  .insight-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 900px) {
+    .insight-grid { grid-template-columns: 1fr; }
+    .schema-grid { grid-template-columns: 1fr; }
+    .tab-bar { padding: 0 16px; }
+    .tab-panel { padding: 24px 16px; }
+    header { padding: 36px 16px 32px; }
+  }
+
+  .insight-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+
+  .insight-card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .insight-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-size: 12.5px;
+  }
+
+  .insight-row:last-child { border-bottom: none; }
+
+  .insight-q {
+    flex: 1;
+    color: #c0c8e0;
+  }
+
+  .insight-technique {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.18);
+    border-radius: 4px;
+    padding: 2px 7px;
+    color: #93c5fd;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ══════════════════ SEARCH BAR ══════════════════ */
+  .search-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search-bar {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 15px;
+    transition: border-color 0.2s;
+  }
+
+  .search-bar:focus-within { border-color: rgba(59,130,246,0.4); }
+  .search-bar input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text); font-size: 13.5px; font-family: 'DM Sans', sans-serif;
+  }
+  .search-bar input::placeholder { color: var(--muted2); }
+
+  .filter-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    border-color: rgba(59,130,246,0.35);
+    color: #93c5fd;
+    background: rgba(59,130,246,0.07);
+  }
+
+  .results-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted2);
+    white-space: nowrap;
+  }
+
+  /* diff badges */
+  .diff {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-left: 8px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .d-easy { background: rgba(34,211,165,0.1); color: #6ee7b7; border: 1px solid rgba(34,211,165,0.2); }
+  .d-med { background: rgba(245,158,11,0.1); color: #fcd34d; border: 1px solid rgba(245,158,11,0.2); }
+  .d-hard { background: rgba(248,113,113,0.1); color: #fca5a5; border: 1px solid rgba(248,113,113,0.2); }
+
+  .hidden { display: none !important; }
+
+  /* ══════════════════ FOOTER ══════════════════ */
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 32px;
+    border-top: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted2);
+  }
+
+  /* ══════════════════ BONUS SECTION ══════════════════ */
+  .bonus-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 32px;
+  }
+
+  @media (max-width: 900px) { .bonus-grid { grid-template-columns: 1fr; } }
+
+  .bonus-card {
+    background: linear-gradient(135deg, var(--surface) 0%, rgba(59,130,246,0.05) 100%);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 12px;
+    padding: 18px;
+  }
+
+  .bonus-letter {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 900;
+    color: rgba(59,130,246,0.25);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .bonus-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0e7ff;
+    margin-bottom: 6px;
+  }
+
+  .bonus-desc { font-size: 12.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<header>
+  <div class="header-watermark">LedgerForge</div>
+  <div class="bank-chip">
+    <span class="bank-chip-dot">🏦</span>
+    LedgerForge Bank · Spark Scala
+  </div>
+  <h1>Data Engineering<br><span>Problem Set</span></h1>
+  <p class="header-desc">24 production-grade Spark problems built on a realistic banking dataset with intentional dirty data, skew, SCD2, and streaming scenarios.</p>
+  <div class="header-stats">
+    <div class="hstat">
+      <div class="hstat-val">24</div>
+      <div class="hstat-lbl">Problems</div>
+    </div>
+    <div class="hdivider"></div>
+    <div class="hstat">
+      <div class="hstat-val">5</div>
+      <div class="hstat-lbl">Datasets</div>
+    </div>
+    <div class="hdivider"></div>
+    <div class="hstat">
+      <div class="hstat-val">50M</div>
+      <div class="hstat-lbl">Transactions</div>
+    </div>
+    <div class="hdivider"></div>
+    <div class="hstat">
+      <div class="hstat-val">8</div>
+      <div class="hstat-lbl">Sections</div>
+    </div>
+    <div class="hdivider"></div>
+    <div class="hstat">
+      <div class="hstat-val">6</div>
+      <div class="hstat-lbl">Streaming</div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════ TABS ═══════════════════ -->
+<div class="tab-bar">
+  <div class="tab active" onclick="showTab('schema')"><span class="tab-icon">🗃️</span> Data Model</div>
+  <div class="tab" onclick="showTab('problems')"><span class="tab-icon">⚡</span> Problems A–F</div>
+  <div class="tab" onclick="showTab('streaming')"><span class="tab-icon">🌊</span> Streaming G</div>
+  <div class="tab" onclick="showTab('insights')"><span class="tab-icon">💡</span> Insights</div>
+  <div class="tab" onclick="showTab('bonus')"><span class="tab-icon">🏆</span> Bonus</div>
+</div>
+
+<div class="page-content">
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 1: DATA MODEL
+══════════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-schema">
+
+  <div class="erd-box">
+    <div class="erd-title">Entity Relationship Overview</div>
+    <div class="erd-container">
+      <div class="erd-node">
+        <div class="erd-node-name">customer_scd2</div>
+        <div class="erd-node-count">~5.75M rows</div>
+      </div>
+      <div class="erd-arrow">←</div>
+      <div class="erd-node center">
+        <div class="erd-node-name">account ★</div>
+        <div class="erd-node-count">5M rows · hub</div>
+      </div>
+      <div class="erd-arrow">→</div>
+      <div class="erd-node">
+        <div class="erd-node-name">branch</div>
+        <div class="erd-node-count">500 rows</div>
+      </div>
+    </div>
+    <div class="erd-container" style="margin-top:12px">
+      <div style="width:100%;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted2)">↑ account_id</div>
+    </div>
+    <div class="erd-container" style="margin-top:4px">
+      <div class="erd-node" style="border-color:rgba(245,158,11,0.3);background:rgba(245,158,11,0.05)">
+        <div class="erd-node-name" style="color:#fcd34d">transaction ⚡</div>
+        <div class="erd-node-count">50M rows · fact</div>
+      </div>
+      <div class="erd-arrow">→</div>
+      <div class="erd-node">
+        <div class="erd-node-name">product</div>
+        <div class="erd-node-count">5K rows</div>
+      </div>
+    </div>
+
+    <div class="join-paths">
+      <div class="erd-title" style="margin-top:20px;margin-bottom:12px">Join Paths</div>
+      <div class="join-path"><span class="jp-num">1</span><span class="jp-node">transaction</span><span class="jp-arrow">→</span><span class="jp-key">account_id</span><span class="jp-arrow">→</span><span class="jp-node">account</span><span style="color:var(--muted);font-size:11px;margin-left:6px">— get customer & branch for a transaction</span></div>
+      <div class="join-path"><span class="jp-num">2</span><span class="jp-node">account</span><span class="jp-arrow">→</span><span class="jp-key">customer_id + date range</span><span class="jp-arrow">→</span><span class="jp-node">customer_scd2</span><span style="color:var(--muted);font-size:11px;margin-left:6px">— point-in-time attributes</span></div>
+      <div class="join-path"><span class="jp-num">3</span><span class="jp-node">account</span><span class="jp-arrow">→</span><span class="jp-key">branch_id</span><span class="jp-arrow">→</span><span class="jp-node">branch</span><span style="color:var(--muted);font-size:11px;margin-left:6px">— branch location</span></div>
+      <div class="join-path"><span class="jp-num">4</span><span class="jp-node">transaction</span><span class="jp-arrow">→</span><span class="jp-key">product_id</span><span class="jp-arrow">→</span><span class="jp-node">product</span><span style="color:var(--muted);font-size:11px;margin-left:6px">— product name/group</span></div>
+      <div class="join-path"><span class="jp-num">5</span><span class="jp-node">transaction</span><span class="jp-arrow">→</span><span class="jp-node">account</span><span class="jp-arrow">→</span><span class="jp-node">branch</span><span style="color:var(--muted);font-size:11px;margin-left:6px">— full branch chain</span></div>
+      <div class="join-path"><span class="jp-num">6</span><span class="jp-node">transaction</span><span class="jp-arrow">→</span><span class="jp-node">account</span><span class="jp-arrow">→</span><span class="jp-node">customer_scd2</span><span style="color:var(--muted);font-size:11px;margin-left:6px">— full customer chain at tx time</span></div>
+    </div>
+  </div>
+
+  <!-- Schema Cards -->
+  <div class="schema-grid">
+
+    <!-- branch -->
+    <div class="schema-card">
+      <div class="schema-card-header">
+        <div class="schema-icon" style="background:rgba(59,130,246,0.1)">📍</div>
+        <div>
+          <div class="schema-table-name">branch</div>
+          <div class="schema-row-count">500 rows · dimension · smallest</div>
+        </div>
+        <span class="schema-badge" style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">DIM</span>
+      </div>
+      <div class="schema-desc">Where the bank operates. Use as a lookup/dimension. Like a list of all store locations.</div>
+      <div class="schema-cols">
+        <div class="schema-col-row"><span class="col-name">branch_id</span><span class="col-type">INT</span><span class="col-key">PK</span></div>
+        <div class="schema-col-row"><span class="col-name">branch_name</span><span class="col-type">STRING</span><span class="col-desc">e.g. "Branch Downtown"</span></div>
+        <div class="schema-col-row"><span class="col-name">state</span><span class="col-type">STRING</span><span class="col-quirk">~2% NULL, ~3% "ZZ"</span></div>
+        <div class="schema-col-row"><span class="col-name">open_date</span><span class="col-type">DATE</span><span class="col-desc">When branch opened</span></div>
+      </div>
+    </div>
+
+    <!-- product -->
+    <div class="schema-card">
+      <div class="schema-card-header">
+        <div class="schema-icon" style="background:rgba(167,139,250,0.1)">📦</div>
+        <div>
+          <div class="schema-table-name">product</div>
+          <div class="schema-row-count">5,000 rows · dimension</div>
+        </div>
+        <span class="schema-badge" style="background:rgba(167,139,250,0.1);color:#c4b5fd;border:1px solid rgba(167,139,250,0.2)">DIM</span>
+      </div>
+      <div class="schema-desc">What the bank sells. product_group is either "Loan" or "Deposit". Like a product catalog.</div>
+      <div class="schema-cols">
+        <div class="schema-col-row"><span class="col-name">product_id</span><span class="col-type">INT</span><span class="col-key">PK</span></div>
+        <div class="schema-col-row"><span class="col-name">product_name</span><span class="col-type">STRING</span><span class="col-quirk">~2% NULL, ~3% "UNKNOWN"</span></div>
+        <div class="schema-col-row"><span class="col-name">product_group</span><span class="col-type">STRING</span><span class="col-desc">"Loan" or "Deposit"</span></div>
+      </div>
+    </div>
+
+    <!-- customer_scd2 -->
+    <div class="schema-card" style="grid-column: span 2">
+      <div class="schema-card-header">
+        <div class="schema-icon" style="background:rgba(34,211,165,0.1)">👤</div>
+        <div>
+          <div class="schema-table-name">customer_scd2</div>
+          <div class="schema-row-count">~5.75M rows · SCD Type 2 · tracks customer history</div>
+        </div>
+        <span class="schema-badge" style="background:rgba(34,211,165,0.1);color:#6ee7b7;border:1px solid rgba(34,211,165,0.2)">SCD2</span>
+      </div>
+      <div class="schema-desc">Who the bank serves — with full change history. 15% of customers have 2+ versions tracking risk tier changes. Requires a temporal/range join to get attributes at a specific date.</div>
+      <div class="schema-cols">
+        <div class="schema-col-row"><span class="col-name">customer_id</span><span class="col-type">INT</span><span class="col-key">PK (partial)</span></div>
+        <div class="schema-col-row"><span class="col-name">first_name / last_name</span><span class="col-type">STRING</span></div>
+        <div class="schema-col-row"><span class="col-name">email</span><span class="col-type">STRING</span><span class="col-quirk">~2% NULL/invalid</span></div>
+        <div class="schema-col-row"><span class="col-name">phone</span><span class="col-type">STRING</span><span class="col-quirk">~2% NULL/"000-000-0000"</span></div>
+        <div class="schema-col-row"><span class="col-name">risk_tier</span><span class="col-type">STRING</span><span class="col-desc">Low / Medium / High — changes over time</span></div>
+        <div class="schema-col-row"><span class="col-name">effective_start</span><span class="col-type">DATE</span><span class="col-desc">Start of validity window</span></div>
+        <div class="schema-col-row"><span class="col-name">effective_end</span><span class="col-type">DATE</span><span class="col-desc">NULL = current record</span></div>
+        <div class="schema-col-row"><span class="col-name">is_current</span><span class="col-type">BOOLEAN</span><span class="col-desc">True for the active row</span></div>
+        <div class="schema-col-row"><span class="col-name">version</span><span class="col-type">INT</span><span class="col-desc">Increments with each change</span></div>
+      </div>
+      <div style="padding:12px 18px 14px;background:rgba(34,211,165,0.03);border-top:1px solid var(--border)">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:6px">SCD2 EXAMPLE — CUSTOMER 42</div>
+        <pre style="margin:0">customer_id | risk_tier | effective_start | effective_end | is_current | version
+42          | Low       | 2025-03-15      | 2026-02-09    | false      | 1
+42          | High      | 2026-02-10      | NULL          | true       | 2</pre>
+        <div class="hint-box"><span>💡</span> To get risk tier on Jan 15 2026: join where <code>event_date >= effective_start AND event_date &lt;= coalesce(effective_end, '9999-12-31')</code></div>
+      </div>
+    </div>
+
+    <!-- account -->
+    <div class="schema-card">
+      <div class="schema-card-header">
+        <div class="schema-icon" style="background:rgba(59,130,246,0.1)">🏛️</div>
+        <div>
+          <div class="schema-table-name">account</div>
+          <div class="schema-row-count">5M rows · central hub</div>
+        </div>
+        <span class="schema-badge" style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">HUB</span>
+      </div>
+      <div class="schema-desc">Links customers ↔ branches ↔ transactions. The star schema center. One customer can have multiple accounts.</div>
+      <div class="schema-cols">
+        <div class="schema-col-row"><span class="col-name">account_id</span><span class="col-type">INT</span><span class="col-key">PK</span></div>
+        <div class="schema-col-row"><span class="col-name">customer_id</span><span class="col-type">INT</span><span class="col-quirk">~2% NULL/-1</span></div>
+        <div class="schema-col-row"><span class="col-name">branch_id</span><span class="col-type">INT</span><span class="col-key">FK→branch</span></div>
+        <div class="schema-col-row"><span class="col-name">account_type</span><span class="col-type">STRING</span><span class="col-quirk">~3% "INVALID_TYPE"</span></div>
+        <div class="schema-col-row"><span class="col-name">status</span><span class="col-type">STRING</span><span class="col-desc">Active / Dormant / Closed</span></div>
+        <div class="schema-col-row"><span class="col-name">open_date</span><span class="col-type">DATE</span></div>
+        <div class="schema-col-row"><span class="col-name">balance</span><span class="col-type">DECIMAL</span><span class="col-desc">-$2K to $18K</span></div>
+      </div>
+    </div>
+
+    <!-- transaction -->
+    <div class="schema-card" style="border-color:rgba(245,158,11,0.2)">
+      <div class="schema-card-header">
+        <div class="schema-icon" style="background:rgba(245,158,11,0.1)">⚡</div>
+        <div>
+          <div class="schema-table-name">transaction</div>
+          <div class="schema-row-count">50M rows · fact table · partitioned by event_date</div>
+        </div>
+        <span class="schema-badge" style="background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.2)">FACT</span>
+      </div>
+      <div class="schema-desc">What happens every day. The big table. Partitioned by event_date (30 partitions). Contains all dirty data quirks.</div>
+      <div class="schema-cols">
+        <div class="schema-col-row"><span class="col-name">transaction_id</span><span class="col-type">INT</span><span class="col-quirk">~2% duplicates</span></div>
+        <div class="schema-col-row"><span class="col-name">account_id</span><span class="col-type">INT</span><span class="col-quirk">~2% NULL/-1 · Zipf skew</span></div>
+        <div class="schema-col-row"><span class="col-name">product_id</span><span class="col-type">INT</span><span class="col-key">FK→product</span></div>
+        <div class="schema-col-row"><span class="col-name">branch_id</span><span class="col-type">INT</span><span class="col-key">FK→branch</span></div>
+        <div class="schema-col-row"><span class="col-name">amount</span><span class="col-type">DECIMAL</span><span class="col-quirk">~2% NULL/-999999.99</span></div>
+        <div class="schema-col-row"><span class="col-name">currency</span><span class="col-type">STRING</span><span class="col-quirk">~3% "XXX"</span></div>
+        <div class="schema-col-row"><span class="col-name">transaction_type</span><span class="col-type">STRING</span><span class="col-quirk">~3% "UNKNOWN"</span></div>
+        <div class="schema-col-row"><span class="col-name">status</span><span class="col-type">STRING</span><span class="col-desc">Approved / Reversed</span></div>
+        <div class="schema-col-row"><span class="col-name">event_date</span><span class="col-type">DATE</span><span class="col-key">PARTITION</span></div>
+        <div class="schema-col-row"><span class="col-name">event_ts</span><span class="col-type">TIMESTAMP</span><span class="col-desc">Exact tx time (event time)</span></div>
+        <div class="schema-col-row"><span class="col-name">ingest_date</span><span class="col-type">DATE</span><span class="col-desc">Load time (0–3 days late)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Quirks Summary -->
+  <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:12px">⚠ Known Data Quirks</div>
+  <div class="quirks-grid">
+    <div class="quirk-item"><div class="quirk-table">transaction · ~2% duplicates</div><div class="quirk-text">Same transaction_id with different ingest_date — keep latest by ingest_date, break ties with event_ts DESC.</div></div>
+    <div class="quirk-item"><div class="quirk-table">transaction · Zipf skew on account_id</div><div class="quirk-text">A few "hot" accounts have thousands × more rows. Causes skewed join tasks and slow window functions.</div></div>
+    <div class="quirk-item"><div class="quirk-table">transaction · amount = -999999.99</div><div class="quirk-text">Sentinel value for invalid amount. Must be caught in data quality checks and routed to quarantine.</div></div>
+    <div class="quirk-item"><div class="quirk-table">transaction · currency = "XXX"</div><div class="quirk-text">Invalid ISO currency code. Filter before any FX or revenue aggregations.</div></div>
+    <div class="quirk-item"><div class="quirk-table">transaction · late arriving data</div><div class="quirk-text">ingest_date can lag event_date by 0–3 days. Watermark of 3 days required for correct streaming aggregations.</div></div>
+    <div class="quirk-item"><div class="quirk-table">branch · state = "ZZ"</div><div class="quirk-text">Invalid US state code (~3%). Filter or flag when doing state-level geographic aggregations.</div></div>
+    <div class="quirk-item"><div class="quirk-table">customer_scd2 · effective_end NULL</div><div class="quirk-text">NULL means "current record". Use coalesce(effective_end, '9999-12-31') for range join comparisons.</div></div>
+    <div class="quirk-item"><div class="quirk-table">account · account_type = "INVALID_TYPE"</div><div class="quirk-text">~3% invalid. Exclude from account type analytics; include in data quality reports.</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 2: PROBLEMS A–F
+══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-problems">
+  <div class="search-row">
+    <div class="search-bar">
+      <span style="color:var(--muted2)">🔍</span>
+      <input type="text" id="probSearch" placeholder="Search problems…" oninput="filterProblems()"/>
+    </div>
+    <button class="filter-btn" id="btnHard" onclick="filterDiff('hard')">Hard Only</button>
+    <button class="filter-btn" id="btnAll" onclick="filterDiff('all')">All</button>
+    <button class="filter-btn" onclick="expandAllProblems()">▼ Expand All</button>
+    <button class="filter-btn" onclick="collapseAllProblems()">▲ Collapse</button>
+    <span class="results-label" id="probCount"></span>
+  </div>
+
+  <!-- SECTION A -->
+  <div class="section-header-row">
+    <span class="sec-badge" style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">A</span>
+    <span class="sec-title">Joins & Lookups</span>
+    <span class="sec-count">3 problems</span>
+  </div>
+
+  <!-- P1 -->
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="med">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">P1</span>
+      <div style="flex:1">
+        <div class="prob-title">Branch-Level Transaction Summary<span class="diff d-med">MEDIUM</span></div>
+        <div class="prob-context-tag">transaction → account → branch · 3-table join</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">multi-table join</span><span class="ctag">filter pushdown</span><span class="ctag">null handling</span><span class="ctag">aggregation</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Context</div>
+        <div class="prob-section-content">Operations team needs a daily report with total transaction amount and count per branch, along with branch name and state.</div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Task</div>
+        <div class="prob-section-content">
+          <p>Join <code>transaction → account → branch</code> to get branch details for each transaction.</p>
+          <p>Aggregate: total amount, transaction count, average amount per branch. Sort by total amount descending.</p>
+          <p>Filter out transactions with <code>status = "Reversed"</code>. Handle null/invalid <code>account_id (-1)</code> and <code>branch_id</code>.</p>
+        </div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Output</div>
+        <div class="prob-section-content">
+          <div class="output-cols">
+            <span class="ocol">branch_id</span><span class="ocol">branch_name</span><span class="ocol">state</span><span class="ocol">total_amount</span><span class="ocol">txn_count</span><span class="ocol">avg_amount</span>
+          </div>
+        </div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Approach</div>
+        <div class="prob-section-content">
+          <pre><span class="cm">// Filter early to reduce data volume before joins</span>
+val txns = transaction
+  .filter(col("status") =!= <span class="str">"Reversed"</span>)
+  .filter(col("account_id").isNotNull && col("account_id") =!= -<span class="num">1</span>)
+
+val result = txns
+  .join(account.filter(col("branch_id").isNotNull), <span class="str">"account_id"</span>)
+  .join(broadcast(branch), <span class="str">"branch_id"</span>) <span class="cm">// branch is 500 rows — broadcast!</span>
+  .groupBy(<span class="str">"branch_id"</span>, <span class="str">"branch_name"</span>, <span class="str">"state"</span>)
+  .agg(
+    sum(<span class="str">"amount"</span>).as(<span class="str">"total_amount"</span>),
+    count(<span class="str">"*"</span>).as(<span class="str">"txn_count"</span>),
+    avg(<span class="str">"amount"</span>).as(<span class="str">"avg_amount"</span>)
+  )
+  .orderBy(col(<span class="str">"total_amount"</span>).desc)</pre>
+          <div class="hint-box"><span>💡</span>Always broadcast the smallest table (branch = 500 rows). Check the physical plan with <code>explain()</code> to confirm BroadcastHashJoin is used.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P2 -->
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="med">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">P2</span>
+      <div style="flex:1">
+        <div class="prob-title">Broadcast Join — Product Enrichment<span class="diff d-med">MEDIUM</span></div>
+        <div class="prob-context-tag">transaction (50M) × product (5K) · broadcast hint experiment</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">broadcast join</span><span class="ctag">explain()</span><span class="ctag">physical plan</span><span class="ctag">Spark UI</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Context</div>
+        <div class="prob-section-content">Every transaction must be enriched with product name and group. Product table is 5K rows vs 50M transaction rows — perfect broadcast candidate.</div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Task</div>
+        <div class="prob-section-content">
+          <p><strong>Run 1:</strong> Join without any hint. Capture physical plan with <code>explain(true)</code>. Record shuffle stages and total task count.</p>
+          <p><strong>Run 2:</strong> Use <code>broadcast(product)</code> hint. Capture plan again. Compare: shuffle stages, task count, execution time.</p>
+          <p>Handle null/invalid <code>product_id</code> — keep transaction, fill with "Unknown".</p>
+        </div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Approach</div>
+        <div class="prob-section-content">
+          <pre><span class="cm">// Run 1: No hint — likely SortMergeJoin with shuffle</span>
+val naiveJoin = transaction.join(product, Seq(<span class="str">"product_id"</span>), <span class="str">"left"</span>)
+naiveJoin.explain(<span class="kw">true</span>)
+
+<span class="cm">// Run 2: Broadcast hint — no shuffle needed</span>
+<span class="kw">import</span> org.apache.spark.sql.functions.broadcast
+val enriched = transaction.join(broadcast(product), Seq(<span class="str">"product_id"</span>), <span class="str">"left"</span>)
+  .na.fill(<span class="str">"Unknown"</span>, Seq(<span class="str">"product_name"</span>, <span class="str">"product_group"</span>))
+enriched.explain(<span class="kw">true</span>) <span class="cm">// Look for BroadcastHashJoin — no Exchange node</span></pre>
+          <div class="hint-box"><span>💡</span>In the plan, look for <code>Exchange</code> nodes (shuffles). Broadcast joins eliminate the Exchange on the small side. The join goes from O(N log N) sort-merge to O(N) hash lookup.</div>
+          <div class="warn-box"><span>⚠</span>Auto-broadcast threshold is <code>spark.sql.autoBroadcastJoinThreshold = 10MB</code> by default. Products at 5K rows (~200KB) should auto-broadcast — if not, it means statistics aren't computed. Run <code>ANALYZE TABLE</code> or use explicit hint.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P3 -->
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="hard">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">P3</span>
+      <div style="flex:1">
+        <div class="prob-title">SCD2 Temporal Join — Point-in-Time Customer Attributes<span class="diff d-hard">HARD</span></div>
+        <div class="prob-context-tag">range join · effective_start ≤ event_date ≤ effective_end</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">range join</span><span class="ctag">SCD2 pattern</span><span class="ctag">inequality join</span><span class="ctag">coalesce</span><span class="ctag">join optimization</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Context</div>
+        <div class="prob-section-content">Regulatory reporting requires the customer's risk tier <em>as it was on the date of each transaction</em> — not the current value. A transaction on Jan 15, 2026 needs Alice's risk tier as of Jan 15, not today.</div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Task</div>
+        <div class="prob-section-content">
+          <p>Join: <code>transaction → account</code> (get customer_id) → <code>customer_scd2</code></p>
+          <p>The SCD2 join condition: <code>event_date >= effective_start AND event_date &lt;= coalesce(effective_end, '9999-12-31')</code></p>
+          <p>Measure execution time with full SCD2 join vs. incorrect fast path (is_current=true only).</p>
+        </div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Output</div>
+        <div class="prob-section-content">
+          <div class="output-cols">
+            <span class="ocol">transaction_id</span><span class="ocol">event_date</span><span class="ocol">amount</span><span class="ocol">customer_id</span><span class="ocol">first_name</span><span class="ocol">last_name</span><span class="ocol">risk_tier</span><span class="ocol">version</span>
+          </div>
+        </div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Approach</div>
+        <div class="prob-section-content">
+          <pre><span class="kw">val</span> scd2 = customerScd2.withColumn(<span class="str">"eff_end_safe"</span>,
+  coalesce(col(<span class="str">"effective_end"</span>), lit(<span class="str">"9999-12-31"</span>).cast(DateType)))
+
+<span class="kw">val</span> txWithCustomer = transaction
+  .join(account, <span class="str">"account_id"</span>)   <span class="cm">// get customer_id</span>
+  .join(scd2,
+    account(<span class="str">"customer_id"</span>) === scd2(<span class="str">"customer_id"</span>) &&
+    transaction(<span class="str">"event_date"</span>) >= scd2(<span class="str">"effective_start"</span>) &&
+    transaction(<span class="str">"event_date"</span>) &lt;= scd2(<span class="str">"eff_end_safe"</span>),
+    <span class="str">"left"</span>
+  )</pre>
+          <div class="warn-box"><span>⚠</span>Range joins are NOT optimized by Spark's Catalyst the same way equality joins are — they become nested-loop or broadcast-based. Pre-filtering SCD2 to a date range overlapping your transaction date range significantly reduces the join input. Consider range-partitioning customer_scd2 by effective_start if this join runs daily.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION B -->
+  <div class="section-header-row" style="margin-top:40px">
+    <span class="sec-badge" style="background:rgba(34,211,165,0.1);color:#6ee7b7;border:1px solid rgba(34,211,165,0.2)">B</span>
+    <span class="sec-title">Window Functions & Deduplication</span>
+    <span class="sec-count">3 problems</span>
+  </div>
+
+  <!-- P4 -->
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="med">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(34,211,165,0.1);color:#6ee7b7;border:1px solid rgba(34,211,165,0.2)">P4</span>
+      <div style="flex:1">
+        <div class="prob-title">Transaction Deduplication<span class="diff d-med">MEDIUM</span></div>
+        <div class="prob-context-tag">row_number() window · keep latest by ingest_date</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">row_number()</span><span class="ctag">window functions</span><span class="ctag">dropDuplicates limitations</span><span class="ctag">deterministic ordering</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Context</div>
+        <div class="prob-section-content">~2% of transaction_ids appear more than once with different ingest_date values. Keep only the latest version per transaction_id.</div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Approach</div>
+        <div class="prob-section-content">
+          <pre><span class="kw">val</span> w = Window.partitionBy(<span class="str">"transaction_id"</span>)
+  .orderBy(col(<span class="str">"ingest_date"</span>).desc, col(<span class="str">"event_ts"</span>).desc) <span class="cm">// tie-break with event_ts</span>
+
+<span class="kw">val</span> deduped = transaction
+  .withColumn(<span class="str">"rn"</span>, row_number().over(w))
+  .filter(col(<span class="str">"rn"</span>) === <span class="num">1</span>)
+  .drop(<span class="str">"rn"</span>)</pre>
+          <div class="warn-box"><span>⚠</span><code>dropDuplicates("transaction_id")</code> is non-deterministic — it keeps an arbitrary row from each duplicate group, not necessarily the latest. Always use <code>row_number()</code> when you care which duplicate survives.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P5 -->
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="med">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(34,211,165,0.1);color:#6ee7b7;border:1px solid rgba(34,211,165,0.2)">P5</span>
+      <div style="flex:1">
+        <div class="prob-title">Running Account Balance<span class="diff d-med">MEDIUM</span></div>
+        <div class="prob-context-tag">cumulative sum · ordered window · skew observation</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">cumsum window</span><span class="ctag">orderBy in window</span><span class="ctag">partition skew</span><span class="ctag">shuffle.partitions tuning</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Context</div>
+        <div class="prob-section-content">Finance needs the running (cumulative) balance per account ordered by event time. The Zipf-skewed account_id means some partitions have vastly more rows.</div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Output</div>
+        <div class="prob-section-content">
+          <div class="output-cols">
+            <span class="ocol">account_id</span><span class="ocol">transaction_id</span><span class="ocol">event_date</span><span class="ocol">amount</span><span class="ocol">running_balance</span><span class="ocol">txn_rank</span>
+          </div>
+        </div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Approach</div>
+        <div class="prob-section-content">
+          <pre><span class="kw">val</span> w = Window.partitionBy(<span class="str">"account_id"</span>)
+  .orderBy(<span class="str">"event_date"</span>, <span class="str">"event_ts"</span>)
+  .rowsBetween(Window.unboundedPreceding, Window.currentRow)
+
+<span class="kw">val</span> result = transaction
+  .withColumn(<span class="str">"running_balance"</span>, sum(<span class="str">"amount"</span>).over(w))
+  .withColumn(<span class="str">"txn_rank"</span>, row_number().over(w))</pre>
+          <div class="hint-box"><span>💡</span>Tune <code>spark.sql.shuffle.partitions</code>: set to 4 locally (reduces task overhead), 200–500 in production based on cluster cores. Watch the Spark UI Stage view — hot account tasks will take 10–100× longer than average tasks.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P6 -->
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="hard">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(34,211,165,0.1);color:#6ee7b7;border:1px solid rgba(34,211,165,0.2)">P6</span>
+      <div style="flex:1">
+        <div class="prob-title">Fraud Velocity Detection<span class="diff d-hard">HARD</span></div>
+        <div class="prob-context-tag">rangeBetween window · ±2 minute timestamp window</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">rangeBetween</span><span class="ctag">timestamp windowing</span><span class="ctag">skew impact</span><span class="ctag">pre-filtering</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Context</div>
+        <div class="prob-section-content">Flag accounts with ≥5 transactions within any 2-minute window. Useful for detecting card testing and coordinated fraud attacks.</div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Approach</div>
+        <div class="prob-section-content">
+          <pre><span class="cm">// Cast event_ts to unix seconds for rangeBetween</span>
+<span class="kw">val</span> w = Window
+  .partitionBy(<span class="str">"account_id"</span>)
+  .orderBy(col(<span class="str">"event_ts"</span>).cast(<span class="str">"long"</span>))
+  .rangeBetween(-<span class="num">120</span>, <span class="num">120</span>) <span class="cm">// ±120 seconds</span>
+
+<span class="kw">val</span> result = transaction
+  .filter(col(<span class="str">"status"</span>) === <span class="str">"Approved"</span>) <span class="cm">// pre-filter first!</span>
+  .withColumn(<span class="str">"velocity_count"</span>, count(<span class="str">"*"</span>).over(w))
+  .withColumn(<span class="str">"is_velocity_alert"</span>, col(<span class="str">"velocity_count"</span>) >= <span class="num">5</span>)</pre>
+          <div class="warn-box"><span>⚠</span>Hot accounts with thousands of transactions will create a massive window computation — every pair of events within 2 minutes must be evaluated. This is one of the most computationally expensive patterns. Pre-filter to Approved transactions and monitor task duration carefully.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION C -->
+  <div class="section-header-row" style="margin-top:40px">
+    <span class="sec-badge" style="background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.2)">C</span>
+    <span class="sec-title">Aggregations & Data Quality</span>
+    <span class="sec-count">3 problems</span>
+  </div>
+
+  <!-- P7 -->
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="med">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.2)">P7</span>
+      <div style="flex:1">
+        <div class="prob-title">Daily Customer Spend with Late Data Handling<span class="diff d-med">MEDIUM</span></div>
+        <div class="prob-context-tag">partition pruning · lookback window · idempotent writes</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">partition pruning</span><span class="ctag">incremental processing</span><span class="ctag">idempotent writes</span><span class="ctag">explain()</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Context</div>
+        <div class="prob-section-content">Transactions can arrive up to 3 days late. The pipeline must reprocess a rolling 3-day window to correct historical aggregates without reprocessing all 50M rows.</div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Approach</div>
+        <div class="prob-section-content">
+          <pre><span class="kw">val</span> runDate = LocalDate.now()
+<span class="kw">val</span> startDate = runDate.minusDays(<span class="num">3</span>).toString
+<span class="kw">val</span> endDate = runDate.toString
+
+<span class="cm">// Partition pruning — only read needed partitions</span>
+<span class="kw">val</span> window = transaction
+  .filter(col(<span class="str">"event_date"</span>).between(startDate, endDate))
+
+window.explain() <span class="cm">// verify PartitionFilters in output</span>
+
+<span class="cm">// Idempotent overwrite — safe to re-run</span>
+spark.conf.set(<span class="str">"spark.sql.sources.partitionOverwriteMode"</span>, <span class="str">"dynamic"</span>)
+result.write.mode(<span class="str">"overwrite"</span>).partitionBy(<span class="str">"event_date"</span>).parquet(outputPath)</pre>
+          <div class="hint-box"><span>💡</span>With <code>partitionOverwriteMode = dynamic</code>, Spark only overwrites the partitions present in the DataFrame, not all partitions in the table — making the write idempotent and safe to re-run.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P8 -->
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="med">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.2)">P8</span>
+      <div style="flex:1">
+        <div class="prob-title">Data Quality Quarantine Pipeline<span class="diff d-med">MEDIUM</span></div>
+        <div class="prob-context-tag">6 quality rules · rejection_reasons array · accumulators</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">column expressions</span><span class="ctag">LongAccumulator</span><span class="ctag">array()</span><span class="ctag">when/otherwise</span><span class="ctag">multi-sink</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Quality Rules</div>
+        <div class="prob-section-content">
+          <p>1. <code>transaction_id IS NOT NULL</code></p>
+          <p>2. <code>account_id IS NOT NULL AND account_id &gt; 0</code></p>
+          <p>3. <code>amount IS NOT NULL AND amount != -999999.99</code></p>
+          <p>4. <code>currency IS NOT NULL AND currency != "XXX"</code></p>
+          <p>5. <code>event_date IS NOT NULL</code></p>
+          <p>6. <code>transaction_type IS NOT NULL AND transaction_type != "UNKNOWN"</code></p>
+        </div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Approach</div>
+        <div class="prob-section-content">
+          <pre><span class="cm">// Build rejection_reasons as an array of strings</span>
+<span class="kw">val</span> withReasons = transaction.withColumn(<span class="str">"rejection_reasons"</span>,
+  array(
+    when(col(<span class="str">"transaction_id"</span>).isNull, lit(<span class="str">"NULL_TXN_ID"</span>)),
+    when(col(<span class="str">"account_id"</span>).isNull || col(<span class="str">"account_id"</span>) <= <span class="num">0</span>, lit(<span class="str">"INVALID_ACCOUNT"</span>)),
+    when(col(<span class="str">"amount"</span>).isNull || col(<span class="str">"amount"</span>) === -<span class="num">999999.99</span>, lit(<span class="str">"INVALID_AMOUNT"</span>)),
+    when(col(<span class="str">"currency"</span>).isNull || col(<span class="str">"currency"</span>) === <span class="str">"XXX"</span>, lit(<span class="str">"INVALID_CURRENCY"</span>)),
+    when(col(<span class="str">"event_date"</span>).isNull, lit(<span class="str">"NULL_DATE"</span>)),
+    when(col(<span class="str">"transaction_type"</span>).isNull || col(<span class="str">"transaction_type"</span>) === <span class="str">"UNKNOWN"</span>, lit(<span class="str">"UNKNOWN_TYPE"</span>))
+  ).cast(<span class="str">"array&lt;string>"</span>)  <span class="cm">// remove nulls from array</span>
+)
+<span class="kw">val</span> valid = withReasons.filter(size(col(<span class="str">"rejection_reasons"</span>)) === <span class="num">0</span>)
+<span class="kw">val</span> quarantine = withReasons.filter(size(col(<span class="str">"rejection_reasons"</span>)) > <span class="num">0</span>)</pre>
+          <div class="hint-box"><span>💡</span>Use <code>array_compact()</code> (Spark 3.4+) or <code>array_remove(arr, null)</code> to clean nulls from the rejection_reasons array. Use <code>LongAccumulator</code> inside <code>foreachPartition</code> to count violations without triggering extra scans.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P9 -->
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="hard">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.2)">P9</span>
+      <div style="flex:1">
+        <div class="prob-title">UDF vs. Native — Risk Bucket Classification<span class="diff d-hard">HARD</span></div>
+        <div class="prob-context-tag">UDF bypass of Catalyst · WholeStageCodegen · performance comparison</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">UDF</span><span class="ctag">Catalyst optimizer</span><span class="ctag">WholeStageCodegen</span><span class="ctag">when/otherwise</span><span class="ctag">perf benchmark</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Risk Rules</div>
+        <div class="prob-section-content">
+          <table class="mode-table">
+            <tr><th>Condition</th><th>Bucket</th></tr>
+            <tr><td><code>amount &gt; 5000</code></td><td><code>CRITICAL</code></td></tr>
+            <tr><td><code>amount &gt; 1000 AND type = "Transfer"</code></td><td><code>HIGH</code></td></tr>
+            <tr><td><code>amount &gt; 500</code></td><td><code>MEDIUM</code></td></tr>
+            <tr><td>else</td><td><code>LOW</code></td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Why Native Wins</div>
+        <div class="prob-section-content">
+          <p><strong>UDF:</strong> Spark serializes each Row to Java objects, calls your Scala function, then deserializes back. Bypasses Catalyst — no predicate pushdown, no constant folding, no WholeStageCodegen fusion. Every row crosses the Spark→JVM boundary.</p>
+          <p><strong>Native <code>when/otherwise</code>:</strong> Catalyst compiles the expression tree to bytecode via WholeStageCodegen. The entire chain of conditions runs in a single fused loop without object creation or serialization. Typically 3–10× faster on large datasets.</p>
+          <pre><span class="cm">// Native — Catalyst can optimize and codegen this</span>
+<span class="kw">val</span> nativeResult = transaction.withColumn(<span class="str">"risk_bucket"</span>,
+  when(col(<span class="str">"amount"</span>).isNull || col(<span class="str">"transaction_type"</span>).isNull, <span class="str">"UNKNOWN"</span>)
+  .when(col(<span class="str">"amount"</span>) > <span class="num">5000</span>, <span class="str">"CRITICAL"</span>)
+  .when(col(<span class="str">"amount"</span>) > <span class="num">1000</span> && col(<span class="str">"transaction_type"</span>) === <span class="str">"Transfer"</span>, <span class="str">"HIGH"</span>)
+  .when(col(<span class="str">"amount"</span>) > <span class="num">500</span>, <span class="str">"MEDIUM"</span>)
+  .otherwise(<span class="str">"LOW"</span>))</pre>
+          <div class="warn-box"><span>⚠</span>When you must use a UDF (complex external library calls, stateful logic), consider <code>pandas_udf</code> (Arrow-based vectorized UDF) which processes batches instead of row-by-row — typically 10–100× faster than standard UDFs.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION D -->
+  <div class="section-header-row" style="margin-top:40px">
+    <span class="sec-badge" style="background:rgba(248,113,113,0.1);color:#fca5a5;border:1px solid rgba(248,113,113,0.2)">D</span>
+    <span class="sec-title">Partitioning, Bucketing & Skew</span>
+    <span class="sec-count">3 problems</span>
+  </div>
+
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="med">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(248,113,113,0.1);color:#fca5a5;border:1px solid rgba(248,113,113,0.2)">P10</span>
+      <div style="flex:1">
+        <div class="prob-title">Partition Optimization — Small File Problem<span class="diff d-med">MEDIUM</span></div>
+        <div class="prob-context-tag">repartition · coalesce · inputFiles · controlled file count</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">repartition</span><span class="ctag">coalesce</span><span class="ctag">small file problem</span><span class="ctag">inputFiles</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Key Insight</div>
+        <div class="prob-section-content">
+          <p><code>coalesce(4)</code> alone after reading a large dataset may not work as expected — coalesce is a narrow transformation that avoids shuffles but can only reduce partitions within an existing partition distribution. If the data is not already partitioned by <code>event_date</code>, coalescing may group rows from different dates together.</p>
+          <p>The correct approach: use <code>repartition(4, col("event_date"))</code> which forces a shuffle that guarantees exactly 4 output files per date partition.</p>
+          <pre>df.repartition(<span class="num">4</span>, col(<span class="str">"event_date"</span>)) <span class="cm">// ✅ correct — shuffles to exactly 4 per date</span>
+  .write.partitionBy(<span class="str">"event_date"</span>).parquet(outputPath)</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="hard">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(248,113,113,0.1);color:#fca5a5;border:1px solid rgba(248,113,113,0.2)">P11</span>
+      <div style="flex:1">
+        <div class="prob-title">Salting for Skewed Joins<span class="diff d-hard">HARD</span></div>
+        <div class="prob-context-tag">Zipf skew · salt + explode technique · task variance</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">data skew</span><span class="ctag">salting pattern</span><span class="ctag">explode</span><span class="ctag">Spark UI task metrics</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">The Problem</div>
+        <div class="prob-section-content">account_id follows Zipf distribution — top 1% of accounts have 30%+ of all transactions. Joining transaction × account on account_id creates skewed shuffle partitions where a few tasks run 100× longer than others.</div>
+      </div>
+      <div class="prob-section">
+        <div class="prob-section-label">Salting Solution</div>
+        <div class="prob-section-content">
+          <pre><span class="kw">val</span> N = <span class="num">10</span> <span class="cm">// salt range</span>
+
+<span class="cm">// Add random salt to transactions</span>
+<span class="kw">val</span> txSalted = transaction
+  .withColumn(<span class="str">"salt"</span>, (rand() * N).cast(IntegerType))
+
+<span class="cm">// Explode account to N copies, each with a different salt</span>
+<span class="kw">val</span> accExploded = account
+  .withColumn(<span class="str">"salt"</span>, explode(array((0 until N).map(lit): _*)))
+
+<span class="cm">// Join on (account_id, salt) — distributes hot accounts across N partitions</span>
+<span class="kw">val</span> result = txSalted
+  .join(accExploded, Seq(<span class="str">"account_id"</span>, <span class="str">"salt"</span>))
+  .drop(<span class="str">"salt"</span>)</pre>
+          <div class="hint-box"><span>💡</span>Salting increases account table size by N×. Higher N = better skew reduction but more memory for the exploded dimension. N=10 reduces max task time to ~1/10 of unsalted. AQE's skew join optimization (Spark 3+) can handle this automatically without manual salting.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="hard">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(248,113,113,0.1);color:#fca5a5;border:1px solid rgba(248,113,113,0.2)">P12</span>
+      <div style="flex:1">
+        <div class="prob-title">Bucketed Join — Shuffle-Free<span class="diff d-hard">HARD</span></div>
+        <div class="prob-context-tag">bucketBy · saveAsTable · SortMergeJoin without Exchange</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">bucketing</span><span class="ctag">saveAsTable</span><span class="ctag">shuffle elimination</span><span class="ctag">physical plan</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Approach</div>
+        <div class="prob-section-content">
+          <pre><span class="cm">// Write both tables with same bucket config</span>
+account.write
+  .bucketBy(<span class="num">16</span>, <span class="str">"account_id"</span>)
+  .sortBy(<span class="str">"account_id"</span>)
+  .saveAsTable(<span class="str">"account_bucketed"</span>)
+
+transaction.write
+  .bucketBy(<span class="num">16</span>, <span class="str">"account_id"</span>)
+  .sortBy(<span class="str">"account_id"</span>)
+  .saveAsTable(<span class="str">"transaction_bucketed"</span>)
+
+<span class="cm">// Join without shuffle — verify with explain()</span>
+spark.table(<span class="str">"transaction_bucketed"</span>)
+  .join(spark.table(<span class="str">"account_bucketed"</span>), <span class="str">"account_id"</span>)
+  .explain(<span class="kw">true</span>) <span class="cm">// Should show SortMergeJoin WITHOUT Exchange nodes</span></pre>
+          <div class="warn-box"><span>⚠</span>Both tables MUST use identical bucket count and bucket column for shuffle elimination. A mismatch causes Spark to fall back to a regular shuffle join. Bucketed tables require <code>saveAsTable</code> (Hive metastore), not direct parquet writes.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION E -->
+  <div class="section-header-row" style="margin-top:40px">
+    <span class="sec-badge" style="background:rgba(167,139,250,0.1);color:#c4b5fd;border:1px solid rgba(167,139,250,0.2)">E</span>
+    <span class="sec-title">Performance Tuning & Caching</span>
+    <span class="sec-count">3 problems</span>
+  </div>
+
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="hard">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(167,139,250,0.1);color:#c4b5fd;border:1px solid rgba(167,139,250,0.2)">P13</span>
+      <div style="flex:1">
+        <div class="prob-title">AQE Experiment — Adaptive Query Execution<span class="diff d-hard">HARD</span></div>
+        <div class="prob-context-tag">coalescing · skew join · CustomShuffleReader · before/after comparison</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">AQE</span><span class="ctag">coalescePartitions</span><span class="ctag">skew join optimization</span><span class="ctag">AdaptiveSparkPlan</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Three Configurations</div>
+        <div class="prob-section-content">
+          <table class="mode-table">
+            <tr><th>Config</th><th>What changes</th><th>Look for in plan</th></tr>
+            <tr><td>AQE off</td><td>Static 200-partition shuffle</td><td>Fixed Exchange nodes</td></tr>
+            <tr><td>AQE on</td><td>Coalesces empty/small post-shuffle partitions</td><td>AQEShuffleRead, CustomShuffleReader</td></tr>
+            <tr><td>AQE + skew</td><td>Splits skewed partitions into multiple tasks</td><td>SkewedPartitionSplitting in plan</td></tr>
+          </table>
+          <div class="hint-box"><span>💡</span><code>spark.sql.adaptive.coalescePartitions.minPartitionSize</code> (default 1MB) controls the minimum size a coalesced partition must reach. Set it lower to aggressively coalesce; higher to keep more parallelism. With AQE on, typical 200-partition shuffle may coalesce down to 5–20 actual partitions for small data.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="hard">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(167,139,250,0.1);color:#c4b5fd;border:1px solid rgba(167,139,250,0.2)">P14</span>
+      <div style="flex:1">
+        <div class="prob-title">Caching Strategy Comparison<span class="diff d-hard">HARD</span></div>
+        <div class="prob-context-tag">cache vs persist vs checkpoint · storage levels · lineage</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">cache()</span><span class="ctag">persist(StorageLevel)</span><span class="ctag">checkpoint()</span><span class="ctag">lineage truncation</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Strategy Comparison</div>
+        <div class="prob-section-content">
+          <table class="mode-table">
+            <tr><th>Strategy</th><th>Storage</th><th>Lineage broken?</th><th>Best for</th></tr>
+            <tr><td><code>None</code></td><td>—</td><td class="no">No</td><td>Single-use DataFrames</td></tr>
+            <tr><td><code>.cache()</code></td><td>Memory + disk</td><td class="no">No</td><td>Repeatedly used, fits in memory</td></tr>
+            <tr><td><code>DISK_ONLY</code></td><td>Disk only</td><td class="no">No</td><td>Memory-constrained environments</td></tr>
+            <tr><td><code>.checkpoint()</code></td><td>HDFS/S3</td><td class="yes">Yes</td><td>Long lineage chains, iterative ML</td></tr>
+          </table>
+          <div class="warn-box"><span>⚠</span><code>.checkpoint()</code> is eager — it immediately triggers computation and writes to disk, then truncates the lineage graph. Unlike cache/persist, it survives executor failures and application restarts. Use it when the lineage chain exceeds ~100 stages or for iterative algorithms (PageRank, k-means).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="hard">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(167,139,250,0.1);color:#c4b5fd;border:1px solid rgba(167,139,250,0.2)">P15</span>
+      <div style="flex:1">
+        <div class="prob-title">Physical Plan Analysis — Finding Unnecessary Shuffles<span class="diff d-hard">HARD</span></div>
+        <div class="prob-context-tag">explain(true) · Exchange nodes · broadcast optimization</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">explain(true)</span><span class="ctag">Exchange</span><span class="ctag">BroadcastHashJoin</span><span class="ctag">SortMergeJoin</span><span class="ctag">plan optimization</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Optimization Goal</div>
+        <div class="prob-section-content">
+          <p><strong>Naive plan:</strong> transaction JOIN account JOIN branch GROUP BY state — typically 3–4 Exchange (shuffle) nodes</p>
+          <p><strong>Optimized:</strong> broadcast(branch) eliminates one shuffle. Pre-partitioning account by account_id before join can eliminate another. Target ≤2 shuffles.</p>
+          <pre><span class="cm">// Count Exchange nodes programmatically</span>
+<span class="kw">val</span> plan = df.queryExecution.executedPlan.toString
+<span class="kw">val</span> shuffleCount = plan.split(<span class="str">"Exchange"</span>).length - <span class="num">1</span>
+println(s<span class="str">"Shuffles: $shuffleCount"</span>)</pre>
+          <div class="hint-box"><span>💡</span>Rule of thumb: broadcast any dimension table under 100MB. branch (500 rows ≈ 20KB) and product (5K rows ≈ 200KB) are obvious candidates. Account (5M rows ≈ 400MB) is too large to broadcast — join with transaction using sort-merge or pre-bucket.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION F -->
+  <div class="section-header-row" style="margin-top:40px">
+    <span class="sec-badge" style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">F</span>
+    <span class="sec-title">Incremental Processing & Production Patterns</span>
+    <span class="sec-count">3 problems</span>
+  </div>
+
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="med">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">P16</span>
+      <div style="flex:1">
+        <div class="prob-title">Incremental Partition Load<span class="diff d-med">MEDIUM</span></div>
+        <div class="prob-context-tag">watermark file · cold start · partitionOverwriteMode</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">incremental loading</span><span class="ctag">watermark pattern</span><span class="ctag">partition pruning</span><span class="ctag">idempotency</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Pattern</div>
+        <div class="prob-section-content">
+          <pre><span class="cm">// Read watermark (last processed date)</span>
+<span class="kw">val</span> lastWatermark = Try(
+  Source.fromFile(<span class="str">"output/watermark.txt"</span>).getLines().next()
+).getOrElse(LocalDate.now().minusDays(<span class="num">30</span>).toString)
+
+<span class="cm">// Read only new partitions</span>
+<span class="kw">val</span> newData = transaction
+  .filter(col(<span class="str">"event_date"</span>) > lastWatermark)
+
+<span class="cm">// Process, then write idempotently</span>
+spark.conf.set(<span class="str">"spark.sql.sources.partitionOverwriteMode"</span>, <span class="str">"dynamic"</span>)
+result.write.mode(<span class="str">"overwrite"</span>).partitionBy(<span class="str">"event_date"</span>).parquet(outputPath)
+
+<span class="cm">// Update watermark only after successful write</span>
+Files.write(Paths.get(<span class="str">"output/watermark.txt"</span>), today.toString.getBytes)</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="hard">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">P17</span>
+      <div style="flex:1">
+        <div class="prob-title">Config-Driven Reusable Transformer<span class="diff d-hard">HARD</span></div>
+        <div class="prob-context-tag">HOCON config · expr() · dynamic column ops · Transformer trait</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">expr()</span><span class="ctag">Typesafe Config</span><span class="ctag">dynamic columns</span><span class="ctag">config-driven pipeline</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Key Concept</div>
+        <div class="prob-section-content">
+          <p><code>spark.sql.functions.expr()</code> parses a string as a Spark SQL expression — enabling config-defined column logic without code changes.</p>
+          <pre><span class="cm">// Config defines: { name = "full_name", expr = "concat(first_name, ' ', last_name)" }</span>
+<span class="kw">def</span> transform(df: DataFrame, config: Config): DataFrame = {
+  <span class="kw">val</span> withAdded = config.getConfigList(<span class="str">"add_columns"</span>).asScala.foldLeft(df) {
+    (acc, col) => acc.withColumn(col.getString(<span class="str">"name"</span>), expr(col.getString(<span class="str">"expr"</span>)))
+  }
+  <span class="cm">// apply renames, drops similarly...</span>
+  withAdded
+}</pre>
+          <div class="warn-box"><span>⚠</span><code>expr()</code> evaluates at runtime — expression errors surface as runtime exceptions, not compile-time errors. Add validation in tests that verify every configured expression can be parsed and evaluated on sample data.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="problem-card" onclick="toggleProb(this)" data-diff="hard">
+    <div class="prob-header">
+      <span class="prob-num" style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">P18</span>
+      <div style="flex:1">
+        <div class="prob-title">End-to-End Pipeline — Orchestrated with Metrics<span class="diff d-hard">HARD</span></div>
+        <div class="prob-context-tag">7-stage pipeline · caching · broadcast · AQE · stage metrics</div>
+      </div>
+      <span class="prob-chevron">▼</span>
+    </div>
+    <div class="concept-tags">
+      <span class="ctag">pipeline orchestration</span><span class="ctag">caching strategy</span><span class="ctag">broadcast joins</span><span class="ctag">AQE</span><span class="ctag">performance measurement</span>
+    </div>
+    <div class="prob-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Pipeline Stages</div>
+        <div class="prob-section-content">
+          <table class="mode-table">
+            <tr><th>#</th><th>Stage</th><th>Key Technique</th></tr>
+            <tr><td>1</td><td>Read (incremental)</td><td>Partition pruning, watermark</td></tr>
+            <tr><td>2</td><td>Dedup</td><td>row_number() window — cache result here</td></tr>
+            <tr><td>3</td><td>Quality Check</td><td>array() rejection reasons → quarantine sink</td></tr>
+            <tr><td>4</td><td>Enrich</td><td>broadcast(product), broadcast(branch)</td></tr>
+            <tr><td>5</td><td>SCD2 Join</td><td>Range join on effective_start/end</td></tr>
+            <tr><td>6</td><td>Aggregate</td><td>Daily spend per customer</td></tr>
+            <tr><td>7</td><td>Write</td><td>partitionBy(event_date), dynamic overwrite</td></tr>
+          </table>
+          <div class="hint-box"><span>💡</span>Cache the deduplicated DataFrame after stage 2 — it's consumed by both quality check (stage 3) and enrichment (stage 4). Without caching, the dedup computation runs twice. The SCD2 range join (stage 5) is typically the bottleneck on the first run — pre-filter customer_scd2 to the date range of your data to reduce join input size.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 3: STREAMING
+══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-streaming">
+
+  <div style="background:rgba(34,211,165,0.04);border:1px solid rgba(34,211,165,0.15);border-radius:12px;padding:18px 20px;margin-bottom:28px;font-size:13.5px;color:#6ee7b7">
+    <strong>Why this data is streaming-ready:</strong> <code>transaction</code> is partitioned by event_date (simulate micro-batches), <code>event_ts</code> is your event time, <code>ingest_date</code> lags by 0–3 days (natural late data), and ~2% duplicates require streaming deduplication.
+  </div>
+
+  <!-- Output Mode Reference -->
+  <div style="margin-bottom:28px">
+    <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:12px">Output Mode Reference</div>
+    <table class="mode-table">
+      <tr><th>Mode</th><th>Emits</th><th>Supports Watermark?</th><th>Supports Aggregation?</th><th>Use when</th></tr>
+      <tr><td><code>append</code></td><td>Only new final rows</td><td class="yes">Yes ✓</td><td class="yes">Yes (with watermark)</td><td>Windowed aggregations, dedup</td></tr>
+      <tr><td><code>update</code></td><td>Rows that changed this batch</td><td class="yes">Yes ✓</td><td class="yes">Yes</td><td>Real-time alerts, running totals</td></tr>
+      <tr><td><code>complete</code></td><td>Entire result table</td><td class="no">No ✗</td><td class="yes">Yes (all groups)</td><td>Small aggregations (e.g., 20 rows)</td></tr>
+    </table>
+  </div>
+
+  <!-- Streaming simulation -->
+  <div style="margin-bottom:28px">
+    <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:12px">Simulating Streaming from Parquet</div>
+    <pre><span class="cm">// Option A: File-based streaming (process 2 date partitions per trigger)</span>
+<span class="kw">val</span> stream = spark.readStream
+  .schema(transactionSchema)
+  .option(<span class="str">"maxFilesPerTrigger"</span>, <span class="num">2</span>)
+  .parquet(<span class="str">"data/streaming_input/"</span>)
+
+<span class="cm">// Option B: Rate source for synthetic load testing</span>
+<span class="kw">val</span> rate = spark.readStream
+  .format(<span class="str">"rate"</span>)
+  .option(<span class="str">"rowsPerSecond"</span>, <span class="num">1000</span>)
+  .load()</pre>
+  </div>
+
+  <!-- Stream P19 -->
+  <div class="stream-card" onclick="toggleStream(this)">
+    <div class="stream-header">
+      <span class="stream-num">S1</span>
+      <div style="flex:1">
+        <div class="stream-title">Streaming Ingestion with Watermarking<span class="diff d-med" style="margin-left:8px">MEDIUM</span></div>
+        <div class="stream-subtitle">Hourly tumbling window per account · 3-day watermark · append mode</div>
+      </div>
+      <span class="stream-chevron">▼</span>
+    </div>
+    <div class="stream-concepts">
+      <span class="sctag">readStream</span><span class="sctag">watermark</span><span class="sctag">tumbling windows</span><span class="sctag">append mode</span><span class="sctag">checkpointing</span>
+    </div>
+    <div class="stream-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Code</div>
+        <div class="prob-section-content">
+          <pre><span class="kw">val</span> stream = spark.readStream
+  .schema(transactionSchema)
+  .option(<span class="str">"maxFilesPerTrigger"</span>, <span class="num">2</span>)
+  .parquet(<span class="str">"data/synthetic/transaction"</span>)
+
+<span class="kw">val</span> windowed = stream
+  .withWatermark(<span class="str">"event_ts"</span>, <span class="str">"3 days"</span>)
+  .groupBy(window(col(<span class="str">"event_ts"</span>), <span class="str">"1 hour"</span>), col(<span class="str">"account_id"</span>))
+  .agg(sum(<span class="str">"amount"</span>).as(<span class="str">"hourly_total"</span>), count(<span class="str">"*"</span>).as(<span class="str">"txn_count"</span>))
+
+windowed.writeStream
+  .outputMode(<span class="str">"append"</span>) <span class="cm">// required with watermarks + aggregations</span>
+  .format(<span class="str">"parquet"</span>)
+  .option(<span class="str">"path"</span>, <span class="str">"output/streaming/hourly_agg"</span>)
+  .option(<span class="str">"checkpointLocation"</span>, <span class="str">"output/streaming/checkpoint"</span>)
+  .start()</pre>
+          <div class="hint-box"><span>💡</span>With <code>append</code> mode + watermark, Spark only emits a window's result after the watermark has passed that window's end. A 3-day watermark means hourly windows appear in output 3 days after their event time. Reduce watermark to trade completeness for lower latency.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stream P20 -->
+  <div class="stream-card" onclick="toggleStream(this)">
+    <div class="stream-header">
+      <span class="stream-num">S2</span>
+      <div style="flex:1">
+        <div class="stream-title">Real-Time Fraud Velocity Alert<span class="diff d-med" style="margin-left:8px">MEDIUM</span></div>
+        <div class="stream-subtitle">≥5 transactions in 2-min window · update mode · state store</div>
+      </div>
+      <span class="stream-chevron">▼</span>
+    </div>
+    <div class="stream-concepts">
+      <span class="sctag">update mode</span><span class="sctag">tumbling windows</span><span class="sctag">state management</span><span class="sctag">watermark cleanup</span>
+    </div>
+    <div class="stream-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Code</div>
+        <div class="prob-section-content">
+          <pre><span class="kw">val</span> alerts = stream
+  .withWatermark(<span class="str">"event_ts"</span>, <span class="str">"10 minutes"</span>) <span class="cm">// bounds state store growth</span>
+  .groupBy(window(col(<span class="str">"event_ts"</span>), <span class="str">"2 minutes"</span>), col(<span class="str">"account_id"</span>))
+  .count()
+  .filter(col(<span class="str">"count"</span>) >= <span class="num">5</span>)
+
+alerts.writeStream
+  .outputMode(<span class="str">"update"</span>) <span class="cm">// emit updates as counts change</span>
+  .format(<span class="str">"console"</span>)
+  .start()</pre>
+          <div class="hint-box"><span>💡</span>Streaming version is simpler than batch (Problem 6) — no complex rangeBetween window, just group by the fixed 2-minute window and count. The streaming engine maintains the running count per group and emits updates each micro-batch via <code>update</code> mode.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stream P21 -->
+  <div class="stream-card" onclick="toggleStream(this)">
+    <div class="stream-header">
+      <span class="stream-num">S3</span>
+      <div style="flex:1">
+        <div class="stream-title">Stream-Static Join — Enrich with Dimensions<span class="diff d-easy" style="margin-left:8px">EASY</span></div>
+        <div class="stream-subtitle">Static product + branch broadcast · no shuffle per micro-batch</div>
+      </div>
+      <span class="stream-chevron">▼</span>
+    </div>
+    <div class="stream-concepts">
+      <span class="sctag">stream-static join</span><span class="sctag">auto-broadcast</span><span class="sctag">left join</span>
+    </div>
+    <div class="stream-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Code</div>
+        <div class="prob-section-content">
+          <pre><span class="kw">val</span> products = spark.read.parquet(<span class="str">"data/synthetic/product"</span>) <span class="cm">// static — loaded once</span>
+<span class="kw">val</span> branches = spark.read.parquet(<span class="str">"data/synthetic/branch"</span>)  <span class="cm">// static — loaded once</span>
+
+<span class="kw">val</span> enriched = stream
+  .join(products, Seq(<span class="str">"product_id"</span>), <span class="str">"left"</span>)
+  .join(branches, Seq(<span class="str">"branch_id"</span>), <span class="str">"left"</span>)
+  .na.fill(<span class="str">"Unknown"</span>, Seq(<span class="str">"product_name"</span>, <span class="str">"product_group"</span>, <span class="str">"branch_name"</span>))
+
+enriched.writeStream
+  .outputMode(<span class="str">"append"</span>)
+  .format(<span class="str">"parquet"</span>)
+  .option(<span class="str">"checkpointLocation"</span>, <span class="str">"output/streaming/enrich_checkpoint"</span>)
+  .start()</pre>
+          <div class="hint-box"><span>💡</span>Static tables are loaded into driver memory once and broadcast to all executors — no re-read or shuffle per micro-batch. If the static dimension changes, you must restart the stream to pick up the update. For frequently updated dimensions, consider stream-stream join with watermarks instead.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stream P22 -->
+  <div class="stream-card" onclick="toggleStream(this)">
+    <div class="stream-header">
+      <span class="stream-num">S4</span>
+      <div style="flex:1">
+        <div class="stream-title">Streaming Deduplication<span class="diff d-hard" style="margin-left:8px">HARD</span></div>
+        <div class="stream-subtitle">dropDuplicatesWithinWatermark · bounded state · vs unbounded dropDuplicates</div>
+      </div>
+      <span class="stream-chevron">▼</span>
+    </div>
+    <div class="stream-concepts">
+      <span class="sctag">dropDuplicatesWithinWatermark</span><span class="sctag">state store</span><span class="sctag">watermark eviction</span><span class="sctag">memory management</span>
+    </div>
+    <div class="stream-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Code</div>
+        <div class="prob-section-content">
+          <pre><span class="cm">// ✅ Bounded state — Spark 3.5+</span>
+<span class="kw">val</span> deduped = stream
+  .withWatermark(<span class="str">"event_ts"</span>, <span class="str">"3 days"</span>)
+  .dropDuplicatesWithinWatermark(<span class="str">"transaction_id"</span>)
+<span class="cm">// State store only holds IDs seen in last 3 days — evicts older IDs</span>
+
+<span class="cm">// ❌ Unbounded state — DANGEROUS in production</span>
+<span class="kw">val</span> badDedup = stream.dropDuplicates(<span class="str">"transaction_id"</span>)
+<span class="cm">// State grows forever: after months, holds ALL seen IDs → OOM</span></pre>
+          <div class="warn-box"><span>⚠</span><code>dropDuplicatesWithinWatermark</code> can miss duplicates that arrive more than 3 days apart. For the LedgerForge data where ingest lag is ≤3 days, a 3-day watermark catches all duplicates. If your duplicates can arrive weeks apart, you need a batch dedup pass instead.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stream P23 -->
+  <div class="stream-card" onclick="toggleStream(this)">
+    <div class="stream-header">
+      <span class="stream-num">S5</span>
+      <div style="flex:1">
+        <div class="stream-title">Streaming Data Quality with foreachBatch<span class="diff d-med" style="margin-left:8px">MEDIUM</span></div>
+        <div class="stream-subtitle">Multi-sink routing · idempotent micro-batches · accumulators</div>
+      </div>
+      <span class="stream-chevron">▼</span>
+    </div>
+    <div class="stream-concepts">
+      <span class="sctag">foreachBatch</span><span class="sctag">multi-sink</span><span class="sctag">micro-batch idempotency</span><span class="sctag">accumulators</span>
+    </div>
+    <div class="stream-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Code</div>
+        <div class="prob-section-content">
+          <pre>stream.writeStream
+  .foreachBatch { (batchDF: DataFrame, batchId: Long) =>
+    <span class="kw">val</span> valid = batchDF.filter(col(<span class="str">"amount"</span>).isNotNull && col(<span class="str">"amount"</span>) =!= -<span class="num">999999.99</span>)
+    <span class="kw">val</span> quarantine = batchDF.filter(col(<span class="str">"amount"</span>).isNull || col(<span class="str">"amount"</span>) === -<span class="num">999999.99</span>)
+
+    <span class="cm">// Idempotent: overwrite same path per batchId on retry</span>
+    valid.write.mode(<span class="str">"overwrite"</span>).parquet(s<span class="str">"output/streaming/valid/batch=$batchId"</span>)
+    quarantine.write.mode(<span class="str">"overwrite"</span>).parquet(s<span class="str">"output/streaming/quarantine/batch=$batchId"</span>)
+  }
+  .option(<span class="str">"checkpointLocation"</span>, <span class="str">"output/streaming/dq_checkpoint"</span>)
+  .start()</pre>
+          <div class="hint-box"><span>💡</span><code>foreachBatch</code> gives you a regular DataFrame — you can use any DataFrame API including multiple writes, joins with static data, Delta MERGE operations, or custom sinks. The <code>batchId</code> is monotonically increasing and can serve as an idempotency key for the sink.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stream P24 -->
+  <div class="stream-card" onclick="toggleStream(this)">
+    <div class="stream-header">
+      <span class="stream-num">S6</span>
+      <div style="flex:1">
+        <div class="stream-title">Streaming Dashboard — Complete Output Mode<span class="diff d-easy" style="margin-left:8px">EASY</span></div>
+        <div class="stream-subtitle">Running totals by type+currency · memory sink · queryable via spark.sql</div>
+      </div>
+      <span class="stream-chevron">▼</span>
+    </div>
+    <div class="stream-concepts">
+      <span class="sctag">complete mode</span><span class="sctag">memory sink</span><span class="sctag">in-memory SQL</span><span class="sctag">output mode constraints</span>
+    </div>
+    <div class="stream-body">
+      <div class="prob-section">
+        <div class="prob-section-label">Code</div>
+        <div class="prob-section-content">
+          <pre><span class="kw">val</span> metrics = stream
+  .groupBy(<span class="str">"transaction_type"</span>, <span class="str">"currency"</span>)
+  .agg(sum(<span class="str">"amount"</span>).as(<span class="str">"total"</span>), count(<span class="str">"*"</span>).as(<span class="str">"volume"</span>))
+
+metrics.writeStream
+  .outputMode(<span class="str">"complete"</span>) <span class="cm">// rewrites entire 20-row result each batch</span>
+  .format(<span class="str">"memory"</span>)
+  .queryName(<span class="str">"dashboard"</span>)
+  .start()
+
+<span class="cm">// Query at any time</span>
+spark.sql(<span class="str">"SELECT * FROM dashboard ORDER BY total DESC"</span>).show()</pre>
+          <div class="warn-box"><span>⚠</span><code>complete</code> mode requires keeping ALL aggregation state in memory forever (no watermark support). Only feasible when result cardinality is small (here: 4 types × 5 currencies = 20 rows). Never use complete mode on high-cardinality groupings like account_id — use update mode instead.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 4: INSIGHTS
+══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-insights">
+  <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:20px">Business Questions You Can Answer</div>
+
+  <div class="insight-grid">
+    <div class="insight-card">
+      <div class="insight-card-title">📊 Business Analytics</div>
+      <div class="insight-row"><div class="insight-q">Total revenue by branch and state?</div><span class="insight-technique">3-table join + groupBy</span></div>
+      <div class="insight-row"><div class="insight-q">Which products generate most revenue?</div><span class="insight-technique">join + agg</span></div>
+      <div class="insight-row"><div class="insight-q">Top 10 customers by total spending?</div><span class="insight-technique">groupBy + orderBy</span></div>
+      <div class="insight-row"><div class="insight-q">Monthly transaction trend (volume & amount)?</div><span class="insight-technique">groupBy(month)</span></div>
+      <div class="insight-row"><div class="insight-q">Which branches have the most dormant accounts?</div><span class="insight-technique">filter + groupBy</span></div>
+      <div class="insight-row"><div class="insight-q">Revenue split by currency?</div><span class="insight-technique">groupBy(currency)</span></div>
+      <div class="insight-row"><div class="insight-q">How many customers changed risk tier?</div><span class="insight-technique">filter(version > 1)</span></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-card-title">🔍 Data Quality & Ops</div>
+      <div class="insight-row"><div class="insight-q">What % of transactions have invalid/null data?</div><span class="insight-technique">filter + count</span></div>
+      <div class="insight-row"><div class="insight-q">How many duplicate transaction_ids exist?</div><span class="insight-technique">groupBy + having count>1</span></div>
+      <div class="insight-row"><div class="insight-q">Which accounts have fraud-looking velocity?</div><span class="insight-technique">Window + rangeBetween</span></div>
+      <div class="insight-row"><div class="insight-q">How late does data arrive on average?</div><span class="insight-technique">datediff + histogram</span></div>
+      <div class="insight-row"><div class="insight-q">Which branches have most DQ issues?</div><span class="insight-technique">join + quality rules</span></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-card-title">📈 Time-Series & Trends</div>
+      <div class="insight-row"><div class="insight-q">Daily running balance per account?</div><span class="insight-technique">Window + cumsum</span></div>
+      <div class="insight-row"><div class="insight-q">7-day rolling average amount per account?</div><span class="insight-technique">Window + rangeBetween</span></div>
+      <div class="insight-row"><div class="insight-q">Peak transaction hours of the day?</div><span class="insight-technique">hour(event_ts) + groupBy</span></div>
+      <div class="insight-row"><div class="insight-q">Weekend vs weekday spending patterns?</div><span class="insight-technique">dayofweek + groupBy</span></div>
+      <div class="insight-row"><div class="insight-q">Account age vs transaction volume correlation?</div><span class="insight-technique">join + datediff + corr</span></div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-card-title">⚡ Streaming Analytics</div>
+      <div class="insight-row"><div class="insight-q">Real-time hourly spend per account?</div><span class="insight-technique">watermark + 1hr window</span></div>
+      <div class="insight-row"><div class="insight-q">Live fraud velocity alerts?</div><span class="insight-technique">2-min tumbling + count≥5</span></div>
+      <div class="insight-row"><div class="insight-q">Streaming DQ pass/fail rate?</div><span class="insight-technique">foreachBatch + accumulator</span></div>
+      <div class="insight-row"><div class="insight-q">Running totals dashboard by type?</div><span class="insight-technique">complete mode + memory sink</span></div>
+      <div class="insight-row"><div class="insight-q">Real-time enriched transaction feed?</div><span class="insight-technique">stream-static join</span></div>
+    </div>
+  </div>
+
+  <!-- Concept Map -->
+  <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:16px;margin-top:32px">Spark Concept → Problem Mapping</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(260px,1fr));gap:10px">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:12px 14px"><div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px">BROADCAST JOIN</div><div style="font-size:12.5px;color:#c0c8e0">P2 (product enrichment), P15 (branch broadcast), S3 (stream-static)</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:12px 14px"><div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px">WINDOW FUNCTIONS</div><div style="font-size:12.5px;color:#c0c8e0">P4 (row_number dedup), P5 (running balance), P6 (rangeBetween fraud)</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:12px 14px"><div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green);margin-bottom:6px">SCD2 / RANGE JOIN</div><div style="font-size:12.5px;color:#c0c8e0">P3 — point-in-time join with coalesce(effective_end)</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:12px 14px"><div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green);margin-bottom:6px">DATA QUALITY</div><div style="font-size:12.5px;color:#c0c8e0">P8 (quarantine), P9 (UDF vs native), S5 (foreachBatch routing)</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:12px 14px"><div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--amber);margin-bottom:6px">SKEW HANDLING</div><div style="font-size:12.5px;color:#c0c8e0">P11 (manual salting), P13 (AQE skew join), P5 (skew observation)</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:12px 14px"><div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--amber);margin-bottom:6px">EXACTLY-ONCE</div><div style="font-size:12.5px;color:#c0c8e0">P7 (idempotent writes), P16 (watermark pattern), S4 (streaming dedup)</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:12px 14px"><div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--purple);margin-bottom:6px">PERFORMANCE TUNING</div><div style="font-size:12.5px;color:#c0c8e0">P12 (bucketing), P13 (AQE), P14 (caching), P15 (plan analysis)</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:12px 14px"><div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--purple);margin-bottom:6px">STREAMING MODES</div><div style="font-size:12.5px;color:#c0c8e0">S1 (append), S2 (update), S4 (dedup), S6 (complete)</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 5: BONUS
+══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-bonus">
+  <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:20px">Bonus Challenges</div>
+  <div class="bonus-grid">
+    <div class="bonus-card">
+      <div class="bonus-letter">A</div>
+      <div class="bonus-title">Spark SQL vs. DataFrame API</div>
+      <div class="bonus-desc">Pick any 3 problems and solve them using Spark SQL (register temp views, write SQL). Compare physical plans — are they identical? This tests understanding that SQL and DataFrame API produce the same logical plan through Catalyst.</div>
+      <div class="concept-tags" style="margin-top:12px">
+        <span class="ctag">createOrReplaceTempView</span><span class="ctag">spark.sql()</span><span class="ctag">Catalyst equivalence</span>
+      </div>
+    </div>
+    <div class="bonus-card">
+      <div class="bonus-letter">B</div>
+      <div class="bonus-title">Custom Partitioner</div>
+      <div class="bonus-desc">Write a custom Spark partitioner using consistent hashing to distribute account_id evenly despite Zipf skew. Override getPartition() to map hot account IDs to dedicated partitions. Compare task time variance before/after.</div>
+      <div class="concept-tags" style="margin-top:12px">
+        <span class="ctag">Partitioner</span><span class="ctag">consistent hashing</span><span class="ctag">getPartition()</span>
+      </div>
+    </div>
+    <div class="bonus-card">
+      <div class="bonus-letter">C</div>
+      <div class="bonus-title">Delta Lake Integration</div>
+      <div class="bonus-desc">Replace all Parquet reads/writes with Delta Lake. Implement MERGE INTO for SCD2 customer record updates. Add time travel queries to audit historical account states. Compare read performance with Z-ordering on event_date.</div>
+      <div class="concept-tags" style="margin-top:12px">
+        <span class="ctag">DeltaTable.merge()</span><span class="ctag">VERSION AS OF</span><span class="ctag">ZORDER BY</span><span class="ctag">OPTIMIZE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Reference -->
+  <div style="margin-top:40px">
+    <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:16px">How to Use This Problem Set</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px,1fr));gap:16px">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:8px">RECOMMENDED ORDER</div>
+          <div style="font-size:13px;color:#c0c8e0;line-height:1.8">1. Start with Section A (Joins) — builds foundation<br>2. Section B (Window Functions) — builds on joins<br>3. Section C (DQ) — practical production patterns<br>4. Section D (Skew) — performance deep dive<br>5. Section E (Tuning) — optimization mastery<br>6. Section F (Production) — end-to-end thinking<br>7. Section G (Streaming) — extends batch concepts</div>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);margin-bottom:8px">DEVELOPMENT SETUP</div>
+          <pre style="font-size:11px">// SparkSession for local dev
+<span class="kw">val</span> spark = SparkSession.builder()
+  .master(<span class="str">"local[*]"</span>)
+  .config(<span class="str">"spark.sql.shuffle.partitions"</span>, <span class="str">"4"</span>)
+  .config(<span class="str">"spark.sql.adaptive.enabled"</span>, <span class="str">"true"</span>)
+  .getOrCreate()
+
+<span class="cm">// Check Spark UI at http://localhost:4040</span></pre>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--amber);margin-bottom:8px">MEASURE RUNTIME</div>
+          <pre style="font-size:11px"><span class="kw">def</span> timed[T](label: String)(block: => T): T = {
+  <span class="kw">val</span> start = System.currentTimeMillis()
+  <span class="kw">val</span> result = block
+  println(s<span class="str">"$label: ${System.currentTimeMillis()-start}ms"</span>)
+  result
+}
+timed(<span class="str">"P1 branch summary"</span>) { result.count() }</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end page-content -->
+
+<footer>
+  <span style="color:var(--accent)">◈</span> &nbsp;
+  LedgerForge · Spark Scala Problem Set &nbsp;·&nbsp;
+  24 Problems · 5 Datasets · 50M Rows &nbsp;·&nbsp;
+  <span style="color:var(--green)">Batch + Streaming</span>
+</footer>
+
+<script>
+  function showTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  function toggleProb(card) {
+    card.classList.toggle('open');
+  }
+
+  function toggleStream(card) {
+    card.classList.toggle('open');
+  }
+
+  function expandAllProblems() {
+    document.querySelectorAll('.problem-card:not(.hidden)').forEach(c => c.classList.add('open'));
+  }
+
+  function collapseAllProblems() {
+    document.querySelectorAll('.problem-card').forEach(c => c.classList.remove('open'));
+  }
+
+  let currentDiff = 'all';
+  function filterDiff(diff) {
+    currentDiff = diff;
+    document.querySelectorAll('.problem-card').forEach(c => {
+      if (diff === 'hard') {
+        c.classList.toggle('hidden', c.dataset.diff !== 'hard');
+      } else {
+        c.classList.remove('hidden');
+      }
+    });
+    document.getElementById('btnHard').classList.toggle('active', diff === 'hard');
+    document.getElementById('btnAll').classList.toggle('active', diff === 'all');
+    updateProbCount();
+  }
+
+  function filterProblems() {
+    const q = document.getElementById('probSearch').value.toLowerCase();
+    document.querySelectorAll('.problem-card').forEach(c => {
+      const text = c.innerText.toLowerCase();
+      const diffMatch = currentDiff === 'all' || c.dataset.diff === currentDiff;
+      c.classList.toggle('hidden', !diffMatch || (q.length > 0 && !text.includes(q)));
+    });
+    updateProbCount();
+  }
+
+  function updateProbCount() {
+    const visible = document.querySelectorAll('.problem-card:not(.hidden)').length;
+    const total = document.querySelectorAll('.problem-card').length;
+    const el = document.getElementById('probCount');
+    if (el) el.textContent = visible < total ? `${visible} / ${total} shown` : '';
+  }
+</script>
+</body>
+</html>
